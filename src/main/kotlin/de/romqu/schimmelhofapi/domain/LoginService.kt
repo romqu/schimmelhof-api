@@ -5,9 +5,9 @@ import de.romqu.schimmelhofapi.INDEX_URL
 import de.romqu.schimmelhofapi.INITIAL_URL
 import de.romqu.schimmelhofapi.SET_COOKIE_HEADER
 import de.romqu.schimmelhofapi.core.*
-import de.romqu.schimmelhofapi.data.LoginRepository
 import de.romqu.schimmelhofapi.data.SessionEntity
 import de.romqu.schimmelhofapi.data.SessionRepository
+import de.romqu.schimmelhofapi.data.UserRepository
 import de.romqu.schimmelhofapi.data.WebpageRepository
 import okhttp3.Headers
 import okhttp3.Response
@@ -20,7 +20,7 @@ import java.util.*
 
 @Service
 class LoginService(
-    private val loginRepository: LoginRepository,
+    private val userRepository: UserRepository,
     private val sessionRepository: SessionRepository,
     private val getStateValuesFromHtmlDocumentTask: GetStateValuesFromHtmlDocumentTask,
     private val webpageRepository: WebpageRepository,
@@ -33,7 +33,7 @@ class LoginService(
     )
 
     fun execute(username: String, passwordPlain: String) =
-        loginRepository.getInitialResponse()
+        userRepository.getInitialResponse()
             .getInitialCookie()
             .sanitizeCookie()
             .getHtmlDocumentFromBody()
@@ -46,7 +46,7 @@ class LoginService(
             .saveSession()
             .getRidingLessons()
 
-    private fun Result<LoginRepository.Error, LoginRepository.InitialResponseData>.getInitialCookie()
+    private fun Result<UserRepository.Error, UserRepository.InitialResponseData>.getInitialCookie()
         : Result<Error, GetInitialCookieOut> =
         flatMapError(Error.Network) { initialResponse ->
             val setCookieHeaderValue = initialResponse.headers.getSetCookieValue()
@@ -123,7 +123,7 @@ class LoginService(
         userName: String,
         passwordPlain: String
     ): Result<Error, DoLoginOut> = flatMap { out ->
-        loginRepository.getLoginHeadersResponse(
+        userRepository.login(
             username = userName,
             password = passwordPlain,
             viewState = out.viewState,
@@ -210,7 +210,7 @@ class LoginService(
     private fun Result<Error, SanitizeCookieWebOut>.getHtmlDocumentFromIndexBody()
         : Result<Error, GetHtmlDocumentFromIndexBodyOut> =
         flatMap { out ->
-            webpageRepository.getBody(
+            webpageRepository.getCurrentPage(
                 cookie = out.sanitizedCookie,
                 cookieWeb = out.sanitizedCookieWeb
             ).mapError(Error.CouldNotParseIndexResponseBody) { body ->
