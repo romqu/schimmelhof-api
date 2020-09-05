@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package entrypoint;
+
+option java_package = "de.romqu.schimmelhofapi.entrypoint";
+option java_multiple_files = true;
+
+import "WeekdayDto.proto";
+
+message RidingLessonDto {
+  WeekdayDto weekday = 1;
+  string title = 2;
+  string time = 3;
+  string teacher = 4;
+  string place = 5;
+  string lessonCmd = 6;
+  string lessonId = 7;
+  RidingLessonState state = 8;
+  RidingLessonAction action = 9;
+
+
+
+  enum RidingLessonState {
+    EXPIRED = 0;
+    BOOKED_OUT = 1;
+    WAIT_LIST = 2;
+    BOOKED = 3;
+    AVAILABLE = 4;
+  }
+
+  enum  RidingLessonAction {
+    NONE = 0;
+    BOO = 1;
+    ON_WAIT_LIST = 2;
+    CANCEL_BOOKING = 3;
+    CANCEL_WAIT_LIST = 4;
+  }
+}

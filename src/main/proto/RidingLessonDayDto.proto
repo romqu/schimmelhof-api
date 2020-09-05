@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package entrypoint;
+
+option java_package = "de.romqu.schimmelhofapi.entrypoint";
+option java_multiple_files = true;
+
+import "WeekdayDto.proto";
+import "RidingLessonDto.proto";
+
+message RidingLessonDayDto {
+  WeekdayDto weekday = 1;
+  repeated RidingLessonDto ridingLessons = 2;
+}
