@@ -210,7 +210,7 @@ class LoginService(
     private fun Result<Error, SanitizeCookieWebOut>.getHtmlDocumentFromIndexBody()
         : Result<Error, GetHtmlDocumentFromIndexBodyOut> =
         flatMap { out ->
-            webpageRepository.getCurrentPage(
+            webpageRepository.getIndexPage(
                 cookie = out.sanitizedCookie,
                 cookieWeb = out.sanitizedCookieWeb
             ).mapError(Error.CouldNotParseIndexResponseBody) { body ->
