@@ -8,6 +8,7 @@ import de.romqu.schimmelhofapi.data.SessionEntity
 import de.romqu.schimmelhofapi.data.SessionRepository
 import de.romqu.schimmelhofapi.data.UserRepository
 import de.romqu.schimmelhofapi.data.WebpageRepository
+import de.romqu.schimmelhofapi.data.shared.HttpCall
 import de.romqu.schimmelhofapi.shared.*
 import okhttp3.Headers
 import okhttp3.Response
@@ -33,7 +34,7 @@ class LoginService(
     )
 
     fun execute(username: String, passwordPlain: String) =
-        userRepository.getInitialResponse()
+        webpageRepository.getHomePage()
             .getInitialCookie()
             .sanitizeCookie()
             .getHtmlDocumentFromBody()
@@ -46,17 +47,17 @@ class LoginService(
             .saveSession()
             .getRidingLessons()
 
-    private fun Result<UserRepository.Error, UserRepository.InitialResponseData>.getInitialCookie()
+    private fun Result<HttpCall.Error, HttpCall.Response>.getInitialCookie()
         : Result<Error, GetInitialCookieOut> =
-        flatMapError(Error.Network) { initialResponse ->
-            val setCookieHeaderValue = initialResponse.headers.getSetCookieValue()
+        flatMapError(Error.Network) { response ->
+            val setCookieHeaderValue = response.headers.getSetCookieValue()
 
             if (setCookieHeaderValue != null)
                 Result.Success(
                     GetInitialCookieOut(
                         setCookieHeaderValue,
-                        initialResponse.response,
-                        initialResponse.responseBody
+                        response.response,
+                        response.responseBody
                     )
                 )
             else Result.Failure(Error.CookieDoesNotExist)
