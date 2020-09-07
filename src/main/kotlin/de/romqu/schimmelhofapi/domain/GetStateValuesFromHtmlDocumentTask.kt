@@ -1,6 +1,6 @@
 package de.romqu.schimmelhofapi.domain
 
-import de.romqu.schimmelhofapi.core.Result
+import de.romqu.schimmelhofapi.shared.Result
 import org.jsoup.nodes.Document
 import org.springframework.stereotype.Service
 

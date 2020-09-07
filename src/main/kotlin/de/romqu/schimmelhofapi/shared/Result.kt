@@ -1,4 +1,4 @@
-package de.romqu.schimmelhofapi.core
+package de.romqu.schimmelhofapi.shared
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope

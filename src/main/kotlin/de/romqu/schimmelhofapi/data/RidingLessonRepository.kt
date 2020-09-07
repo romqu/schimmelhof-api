@@ -1,21 +1,18 @@
 package de.romqu.schimmelhofapi.data
 
-import de.romqu.schimmelhofapi.COOKIE_HEADER
-import de.romqu.schimmelhofapi.INDEX_URL
-import de.romqu.schimmelhofapi.core.Result
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import okhttp3.ResponseBody
+import de.romqu.schimmelhofapi.data.shared.HttpCall
+import de.romqu.schimmelhofapi.data.shared.HttpCallDelegate
+import de.romqu.schimmelhofapi.data.shared.HttpCallRequestData
+import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
+import de.romqu.schimmelhofapi.shared.Result
 import org.springframework.stereotype.Repository
-import java.io.IOException
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 @Repository
-class RidingLessonRepository(private val httpClient: OkHttpClient) {
+class RidingLessonRepository(
+    private val httpCallDelegate: HttpCallDelegate
+) : HttpCall by httpCallDelegate {
 
     enum class CmdWeek(val symbol: String, val command: String) {
         NEXTWEEK(">>", "cmdNextWeek"),
@@ -24,174 +21,105 @@ class RidingLessonRepository(private val httpClient: OkHttpClient) {
 
     private val dayMonthYearFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
-    fun getRidingLessonsResponse(
-        cookie: String,
-        cookieWeb: String,
-        viewState: String,
-        viewStateGenerator: String,
-        eventValidation: String,
-    ): Result<Error, GetRidingLessonsResponse> {
 
-        val eventValidationWithAscii = eventValidation.replace("/", "%2F")
-            .replace("+", "%2B")
+    fun getRidingLessons(
+        from: OffsetDateTime,
+        to: OffsetDateTime,
+        cmdWeek: CmdWeek,
+        sessionEntity: SessionEntity
+    ): Result<HttpCall.Error, HttpCall.Response> {
 
-        val request = Request.Builder()
-            .addHeader(COOKIE_HEADER, """$cookie; $cookieWeb""")
-            .url(INDEX_URL)
-            .post(
-                ("__EVENTTARGET=" +
-                    "&__EVENTARGUMENT=" +
-                    "&__LASTFOCUS=" +
-                    "&__VIEWSTATE=$viewState" +
-                    "&__VIEWSTATEGENERATOR=$viewStateGenerator" +
-                    "&__EVENTVALIDATION=$eventValidationWithAscii" +
-                    "&rbList=Alle" +
-                    "&__EVENTTARGET=cmdSearch" +
-                    "&txtVon=17.08.2020" +
-                    "&txtBis=30.08.2020" +
-                    "&cmdNextWeek=%3E%3E" +
-                    "&typ=Reitstd" +
-                    "&wunschpf=nein")
-                    .toRequestBody(
-                        "application/x-www-form-urlencoded".toMediaType()
-                    )
+        val requestData = with(sessionEntity) {
+            HttpCallRequestData(
+                cookie = cookie,
+                cookieWeb = cookieWeb,
+                viewState = viewState,
+                viewStateGenerator = viewStateGenerator,
+                eventValidation = eventValidation,
+                eventArgument = "cmdSearch"
             )
-            .build()
+        }
+
+        val requestString = buildGetRidingLessonsRequestString(
+            from = from, to = to, cmdWeek = cmdWeek
+        )
+
+
+        val request = createPostRequest(
+            INDEX_URL,
+            addToRequestBody = requestString,
+            requestData
+        )
 
         return makeCall(request)
     }
 
-    fun getRidingLessonsResponse(
+    private fun buildGetRidingLessonsRequestString(
         from: OffsetDateTime,
         to: OffsetDateTime,
         cmdWeek: CmdWeek,
-        cookie: String,
-        cookieWeb: String,
-        viewState: String,
-        viewStateGenerator: String,
-        eventValidation: String,
-    ): Result<Error, GetRidingLessonsResponse> {
+    ): String {
 
-        val eventValidationWithAscii = eventValidation.replace("/", "%2F")
-            .replace("+", "%2B")
+        val fromDateFormatted = from.toDayMonthYear()
+        val toDateFormatted = to.toDayMonthYear()
 
-        val fromFormatted = from.toDayMonthYear()
-        val toFormatted = to.toDayMonthYear()
-
-        val request = Request.Builder()
-            .addHeader(COOKIE_HEADER, """$cookie; $cookieWeb""")
-            .url(INDEX_URL)
-            .post(
-                ("__EVENTTARGET=" +
-                    "&__EVENTARGUMENT=" +
-                    "&__LASTFOCUS=" +
-                    "&__VIEWSTATE=$viewState" +
-                    "&__VIEWSTATEGENERATOR=$viewStateGenerator" +
-                    "&__EVENTVALIDATION=$eventValidationWithAscii" +
-                    "&rbList=Alle" +
-                    "&__EVENTTARGET=cmdSearch" +
-                    "&txtVon=$fromFormatted" +
-                    "&txtBis=$toFormatted" +
-                    "&${cmdWeek.command}=${cmdWeek.symbol}" +
-                    "&typ=Reitstd" +
-                    "&wunschpf=nein")
-                    .toRequestBody("application/x-www-form-urlencoded".toMediaType())
-            )
-            .build()
-
-        return makeCall(request)
+        return "&rbList=Alle" +
+            "&txtVon=$fromDateFormatted" +
+            "&txtBis=$toDateFormatted" +
+            "&${cmdWeek.command}=${cmdWeek.symbol}" +
+            "&typ=Reitstd" +
+            "&wunschpf=nein"
     }
 
     private fun OffsetDateTime.toDayMonthYear() = format(dayMonthYearFormatter)
 
-    class GetRidingLessonsResponse(
-        val response: Response,
-        val responseBody: ResponseBody
-    )
-
-    fun postBookRidingLessonResponse(
+    fun bookRidingLesson(
         ridingLessonId: String,
-        cookie: String,
-        cookieWeb: String,
-        viewState: String,
-        viewStateGenerator: String,
-        eventValidation: String,
-    ): Result<Error, GetRidingLessonsResponse> {
+        sessionEntity: SessionEntity,
+    ): Result<HttpCall.Error, HttpCall.Response> {
 
-        val eventValidationWithAscii = eventValidation.replace("/", "%2F")
-            .replace("+", "%2B")
-
-        val request = Request.Builder()
-            .addHeader(COOKIE_HEADER, """$cookie; $cookieWeb""")
-            .url(INDEX_URL)
-            .post(
-                ("__EVENTTARGET=" +
-                    "&__EVENTARGUMENT=book%3B$ridingLessonId%3BReitstd%3Bnein%3B-1" +
-                    "&__LASTFOCUS=" +
-                    "&__VIEWSTATE=$viewState" +
-                    "&__VIEWSTATEGENERATOR=$viewStateGenerator" +
-                    "&__EVENTVALIDATION=$eventValidationWithAscii" +
-                    "&").toRequestBody(
-                    "application/x-www-form-urlencoded".toMediaType()
-                )
+        val requestData = with(sessionEntity) {
+            HttpCallRequestData(
+                cookie = cookie,
+                cookieWeb = cookieWeb,
+                viewState = viewState,
+                viewStateGenerator = viewStateGenerator,
+                eventValidation = eventValidation,
+                eventArgument = "book%3B$ridingLessonId%3BReitstd%3Bnein%3B-1"
             )
-            .build()
-
-        return makeCall(request)
-    }
-
-
-    fun postCancelRidingLessonResponse(
-        ridingLessonId: String,
-        cookie: String,
-        cookieWeb: String,
-        viewState: String,
-        viewStateGenerator: String,
-        eventValidation: String,
-    ): Result<Error, GetRidingLessonsResponse> {
-
-        val eventValidationWithAscii = eventValidation.replace("/", "%2F")
-            .replace("+", "%2B")
-
-        val request = Request.Builder()
-            .addHeader(COOKIE_HEADER, """$cookie; $cookieWeb""")
-            .url(INDEX_URL)
-            .post(
-                ("__EVENTTARGET=" +
-                    "&__EVENTARGUMENT=" +
-                    "&__LASTFOCUS=" +
-                    "&__VIEWSTATE=$viewState" +
-                    "&__VIEWSTATEGENERATOR=$viewStateGenerator" +
-                    "&__EVENTVALIDATION=$eventValidationWithAscii" +
-                    "&cmdReitstd_$ridingLessonId=stornieren" +
-                    "&typ=Reitstd" +
-                    "&wunschpf=nein")
-                    .toRequestBody(
-                        "application/x-www-form-urlencoded".toMediaType()
-                    )
-            )
-            .build()
-
-        return makeCall(request)
-    }
-
-    private fun makeCall(request: Request): Result<Error, GetRidingLessonsResponse> = try {
-        val response = httpClient.newCall(request).execute()
-
-        val body = response.body
-
-        if (response.isSuccessful && body != null) {
-            Result.Success(GetRidingLessonsResponse(response, body))
-        } else {
-            response.close()
-            Result.Failure(Error.ResponseUnsuccessful(response.code, response.message))
         }
-    } catch (ex: IOException) {
-        Result.Failure(Error.CallUnsuccessful)
+
+        val request = createPostRequest(INDEX_URL, "", requestData)
+
+        return makeCall(request)
     }
 
-    sealed class Error {
-        class ResponseUnsuccessful(val statusCode: Int, statusMessage: String) : Error()
-        object CallUnsuccessful : Error()
+
+    fun cancelRidingLesson(
+        ridingLessonId: String,
+        sessionEntity: SessionEntity
+    ): Result<HttpCall.Error, HttpCall.Response> {
+
+        val requestData = with(sessionEntity) {
+            HttpCallRequestData(
+                cookie = cookie,
+                cookieWeb = cookieWeb,
+                viewState = viewState,
+                viewStateGenerator = viewStateGenerator,
+                eventValidation = eventValidation,
+            )
+        }
+
+        val requestString = buildCancelRidingLessonString(ridingLessonId)
+
+        val request = createPostRequest(INDEX_URL, requestString, requestData)
+
+        return makeCall(request)
     }
+
+    private fun buildCancelRidingLessonString(
+        ridingLessonId: String,
+    ): String = "&cmdReitstd_$ridingLessonId=stornieren" +
+        "&typ=Reitstd" +
+        "&wunschpf=nein"
 }

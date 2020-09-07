@@ -1,11 +1,11 @@
 package de.romqu.schimmelhofapi.data
 
 
-import de.romqu.schimmelhofapi.core.Result
 import de.romqu.schimmelhofapi.data.shared.HttpCall
 import de.romqu.schimmelhofapi.data.shared.HttpCallDelegate
-import de.romqu.schimmelhofapi.data.shared.RequestSessionData
+import de.romqu.schimmelhofapi.data.shared.HttpCallRequestData
 import de.romqu.schimmelhofapi.data.shared.constant.LOGIN_URL
+import de.romqu.schimmelhofapi.shared.Result
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Repository
 
@@ -17,13 +17,23 @@ class UserRepository(
     fun login(
         username: String,
         password: String,
-        requestSessionData: RequestSessionData
+        sessionEntity: SessionEntity
     ): Result<HttpCall.Error, HttpCall.Response> {
+
+        val requestData = with(sessionEntity) {
+            HttpCallRequestData(
+                cookie = cookie,
+                cookieWeb = cookieWeb,
+                viewState = viewState,
+                viewStateGenerator = viewStateGenerator,
+                eventValidation = eventValidation
+            )
+        }
 
         val request = createPostRequest(
             url = LOGIN_URL,
             addToRequestBody = "",
-            requestSessionData = requestSessionData
+            httpCallRequestData = requestData
         )
 
         return makeCall(request) { response, responseBody ->

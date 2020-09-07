@@ -1,8 +1,8 @@
 package de.romqu.schimmelhofapi.data.shared
 
 import de.romqu.schimmelhofapi.COOKIE_HEADER
-import de.romqu.schimmelhofapi.core.Result
 import de.romqu.schimmelhofapi.data.shared.constant.*
+import de.romqu.schimmelhofapi.shared.Result
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -26,10 +26,10 @@ interface HttpCall {
     fun createPostRequest(
         url: URL,
         addToRequestBody: String,
-        requestSessionData: RequestSessionData
+        httpCallRequestData: HttpCallRequestData
     ): Request
 
-    fun createGetRequest(url: URL, requestSessionData: RequestSessionData): Request
+    fun createGetRequest(url: URL, httpCallRequestData: HttpCallRequestData): Request
 
     sealed class Error {
         class ResponseUnsuccessful(val statusCode: Int, statusMessage: String) : Error()
@@ -95,15 +95,17 @@ class HttpCallDelegate(private val httpClient: OkHttpClient) : HttpCall {
     override fun createPostRequest(
         url: URL,
         addToRequestBody: String,
-        requestSessionData: RequestSessionData
-    ): Request = with(requestSessionData) {
+        httpCallRequestData: HttpCallRequestData
+    ): Request = with(httpCallRequestData) {
+
         Request.Builder()
             .url(url)
             .addHeader(COOKIE_HEADER, """$cookie; $cookieWeb""")
             .addHeader(HEADER_CONTENT_TYPE, MIME_X_WWW_FORM_URLENCODED)
             .post(
                 (REQUEST_EVENT_TARGET_KEY +
-                    REQUEST_EVENT_ARGUMENT_KEY +
+                    "${REQUEST_EVENT_ARGUMENT_KEY}$eventArgument" +
+                    REQUEST_LAST_FOCUS_KEY +
                     "${REQUEST_VIEW_STATE_KEY}$viewState" +
                     "${REQUEST_VIEW_STATE_GENERATOR_KEY}$viewStateGenerator" +
                     "${REQUEST_EVENT_VALIDATION_KEY}$eventValidationEncoded" +
@@ -112,8 +114,8 @@ class HttpCallDelegate(private val httpClient: OkHttpClient) : HttpCall {
             ).build()
     }
 
-    override fun createGetRequest(url: URL, requestSessionData: RequestSessionData): Request =
-        with(requestSessionData) {
+    override fun createGetRequest(url: URL, httpCallRequestData: HttpCallRequestData): Request =
+        with(httpCallRequestData) {
             val builder = Request.Builder()
             val builderHeaderStep =
                 if (cookie.isNotEmpty()) {

@@ -1,13 +1,13 @@
 package de.romqu.schimmelhofapi.domain
 
 import de.romqu.schimmelhofapi.INITIAL_URL
-import de.romqu.schimmelhofapi.core.Result
-import de.romqu.schimmelhofapi.core.flatMap
-import de.romqu.schimmelhofapi.core.map
-import de.romqu.schimmelhofapi.core.mapError
 import de.romqu.schimmelhofapi.data.RidingLessonRepository
 import de.romqu.schimmelhofapi.data.SessionEntity
 import de.romqu.schimmelhofapi.data.SessionRepository
+import de.romqu.schimmelhofapi.shared.Result
+import de.romqu.schimmelhofapi.shared.flatMap
+import de.romqu.schimmelhofapi.shared.map
+import de.romqu.schimmelhofapi.shared.mapError
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.springframework.stereotype.Service
@@ -52,7 +52,7 @@ class GetRidingLessonsTask(
 
         val to = from.with(TemporalAdjusters.next(DayOfWeek.SUNDAY)) */
 
-        return ridingLessonRepository.getRidingLessonsResponse(
+        return ridingLessonRepository.getRidingLessons(
             cookie = cookie,
             cookieWeb = cookieWeb,
             viewState = viewState,

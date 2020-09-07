@@ -1,8 +1,8 @@
 package de.romqu.schimmelhofapi.domain
 
-import de.romqu.schimmelhofapi.core.mapError
 import de.romqu.schimmelhofapi.data.RidingLessonRepository
 import de.romqu.schimmelhofapi.data.SessionEntity
+import de.romqu.schimmelhofapi.shared.mapError
 import org.springframework.stereotype.Service
 
 @Service
@@ -10,7 +10,7 @@ class CancelRidingLessonService(
     private val ridingLessonRepository: RidingLessonRepository,
 ) {
     fun execute(currentSession: SessionEntity, ridingLessonId: String) =
-        ridingLessonRepository.postCancelRidingLessonResponse(
+        ridingLessonRepository.cancelRidingLesson(
             ridingLessonId = ridingLessonId,
             cookieWeb = currentSession.cookieWeb,
             cookie = currentSession.cookie,

@@ -1,11 +1,12 @@
 package de.romqu.schimmelhofapi.data.shared
 
-class RequestSessionData(
+data class HttpCallRequestData(
     val cookie: String,
     val cookieWeb: String,
     val viewState: String,
     val viewStateGenerator: String,
-    val eventValidation: String
+    val eventValidation: String,
+    val eventArgument: String = ""
 ) {
     val eventValidationEncoded: String
         get() = eventValidation

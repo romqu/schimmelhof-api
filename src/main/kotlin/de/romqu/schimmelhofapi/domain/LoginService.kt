@@ -4,11 +4,11 @@ package de.romqu.schimmelhofapi.domain
 import de.romqu.schimmelhofapi.INDEX_URL
 import de.romqu.schimmelhofapi.INITIAL_URL
 import de.romqu.schimmelhofapi.SET_COOKIE_HEADER
-import de.romqu.schimmelhofapi.core.*
 import de.romqu.schimmelhofapi.data.SessionEntity
 import de.romqu.schimmelhofapi.data.SessionRepository
 import de.romqu.schimmelhofapi.data.UserRepository
 import de.romqu.schimmelhofapi.data.WebpageRepository
+import de.romqu.schimmelhofapi.shared.*
 import okhttp3.Headers
 import okhttp3.Response
 import okhttp3.ResponseBody

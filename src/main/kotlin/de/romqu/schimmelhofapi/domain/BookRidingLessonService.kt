@@ -1,8 +1,8 @@
 package de.romqu.schimmelhofapi.domain
 
-import de.romqu.schimmelhofapi.core.mapError
 import de.romqu.schimmelhofapi.data.RidingLessonRepository
 import de.romqu.schimmelhofapi.data.SessionEntity
+import de.romqu.schimmelhofapi.shared.mapError
 import org.springframework.stereotype.Service
 
 @Service
@@ -15,7 +15,7 @@ class BookRidingLessonService(
     private fun bookRidingLesson(
         ridingLessonId: String,
         currentSession: SessionEntity
-    ) = ridingLessonRepository.postBookRidingLessonResponse(
+    ) = ridingLessonRepository.bookRidingLesson(
         ridingLessonId = ridingLessonId,
         cookieWeb = currentSession.cookieWeb,
         cookie = currentSession.cookie,
