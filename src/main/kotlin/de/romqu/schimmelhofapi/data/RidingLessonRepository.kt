@@ -1,9 +1,8 @@
 package de.romqu.schimmelhofapi.data
 
-import de.romqu.schimmelhofapi.data.shared.HttpCall
-import de.romqu.schimmelhofapi.data.shared.HttpCallDelegate
-import de.romqu.schimmelhofapi.data.shared.HttpCallRequestData
+import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
+import de.romqu.schimmelhofapi.data.shared.httpcall.*
 import de.romqu.schimmelhofapi.shared.Result
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
@@ -11,8 +10,9 @@ import java.time.format.DateTimeFormatter
 
 @Repository
 class RidingLessonRepository(
-    private val httpCallDelegate: HttpCallDelegate
-) : HttpCall by httpCallDelegate {
+    private val httpCallDelegate: HttpCallDelegate,
+    private val postCallDelegate: PostCallDelegate
+) : HttpCall by httpCallDelegate, PostCall by postCallDelegate {
 
     enum class CmdWeek(val symbol: String, val command: String) {
         NEXTWEEK(">>", "cmdNextWeek"),
@@ -20,6 +20,7 @@ class RidingLessonRepository(
     }
 
     private val dayMonthYearFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    private fun OffsetDateTime.toDayMonthYear() = format(dayMonthYearFormatter)
 
 
     fun getRidingLessons(
@@ -70,8 +71,6 @@ class RidingLessonRepository(
             "&typ=Reitstd" +
             "&wunschpf=nein"
     }
-
-    private fun OffsetDateTime.toDayMonthYear() = format(dayMonthYearFormatter)
 
     fun bookRidingLesson(
         ridingLessonId: String,

@@ -2,8 +2,8 @@ package de.romqu.schimmelhofapi.domain
 
 import de.romqu.schimmelhofapi.INITIAL_URL
 import de.romqu.schimmelhofapi.data.RidingLessonRepository
-import de.romqu.schimmelhofapi.data.SessionEntity
-import de.romqu.schimmelhofapi.data.SessionRepository
+import de.romqu.schimmelhofapi.data.session.SessionEntity
+import de.romqu.schimmelhofapi.data.session.SessionRepository
 import de.romqu.schimmelhofapi.shared.Result
 import de.romqu.schimmelhofapi.shared.flatMap
 import de.romqu.schimmelhofapi.shared.map
@@ -37,7 +37,7 @@ class GetRidingLessonsTask(
     }
 
     fun execute(sessionUuid: UUID) =
-        sessionRepository.get(sessionUuid)
+        sessionRepository.getBy(sessionUuid)
             .getRidingLessonsBody()
             .convertBodyToHtmlDocument()
             .parseRidingLessonTableEntries()

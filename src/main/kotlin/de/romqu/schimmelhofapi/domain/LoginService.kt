@@ -1,23 +1,25 @@
 package de.romqu.schimmelhofapi.domain
 
 
-import de.romqu.schimmelhofapi.INDEX_URL
 import de.romqu.schimmelhofapi.INITIAL_URL
 import de.romqu.schimmelhofapi.SET_COOKIE_HEADER
-import de.romqu.schimmelhofapi.data.SessionEntity
-import de.romqu.schimmelhofapi.data.SessionRepository
 import de.romqu.schimmelhofapi.data.UserRepository
 import de.romqu.schimmelhofapi.data.WebpageRepository
-import de.romqu.schimmelhofapi.data.shared.HttpCall
-import de.romqu.schimmelhofapi.shared.*
+import de.romqu.schimmelhofapi.data.session.SessionEntity
+import de.romqu.schimmelhofapi.data.session.SessionRepository
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
+import de.romqu.schimmelhofapi.shared.Result
+import de.romqu.schimmelhofapi.shared.flatMap
+import de.romqu.schimmelhofapi.shared.map
+import de.romqu.schimmelhofapi.shared.mapError
 import okhttp3.Headers
-import okhttp3.Response
 import okhttp3.ResponseBody
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.springframework.stereotype.Service
 import java.io.IOException
 import java.util.*
+
 
 @Service
 class LoginService(
@@ -49,21 +51,27 @@ class LoginService(
 
     private fun Result<HttpCall.Error, HttpCall.Response>.getInitialCookie()
         : Result<Error, GetInitialCookieOut> =
-        flatMapError(Error.Network) { response ->
+        doOn({ response ->
             val setCookieHeaderValue = response.headers.getSetCookieValue()
 
             if (setCookieHeaderValue != null)
                 Result.Success(
                     GetInitialCookieOut(
                         setCookieHeaderValue,
-                        response.response,
                         response.responseBody
                     )
                 )
             else Result.Failure(Error.CookieDoesNotExist)
-        }
+        }, { error ->
+            when (error) {
+                is HttpCall.Error.ResponseUnsuccessful ->
+                    Result.Failure(Error.Network(statusCode = error.statusCode))
+                is HttpCall.Error.CallUnsuccessful ->
+                    Result.Failure(Error.Network(error.message))
+            }
+        })
 
-    class GetInitialCookieOut(val initialCookie: String, val response: Response, val responseBody: ResponseBody)
+    class GetInitialCookieOut(val initialCookie: String, val responseBody: ResponseBody)
 
     private fun Result<Error, GetInitialCookieOut>.sanitizeCookie(): Result<Error, SanitizeCookieOut> =
         flatMap { getInitialCookieOut ->
@@ -73,14 +81,13 @@ class LoginService(
                 Result.Success(
                     SanitizeCookieOut(
                         sanitizedCookie,
-                        getInitialCookieOut.response,
                         getInitialCookieOut.responseBody
                     )
                 )
             else Result.Failure(Error.CookieCouldNotBeSanitized)
         }
 
-    class SanitizeCookieOut(val sanitizedCookie: String, val response: Response, val responseBody: ResponseBody)
+    class SanitizeCookieOut(val sanitizedCookie: String, val responseBody: ResponseBody)
 
     private fun Result<Error, SanitizeCookieOut>.getHtmlDocumentFromBody(): Result<Error, GetHtmlDocumentFromBodyOut> =
         flatMap { out ->
@@ -88,7 +95,7 @@ class LoginService(
                 val htmlDocument = out.responseBody.convertToDocument(INITIAL_URL)
 
                 // TODO: improve
-                out.response.close()
+                out.responseBody.close()
 
                 Result.Success(GetHtmlDocumentFromBodyOut(out.sanitizedCookie, htmlDocument))
 
@@ -288,7 +295,7 @@ class LoginService(
     )
 
     sealed class Error {
-        object Network : Error()
+        class Network(val message: String = "", val statusCode: Int = -1) : Error()
         object CookieDoesNotExist : Error()
         object CookieCouldNotBeSanitized : Error()
         object CouldNotParseResponseBody : Error()
@@ -298,7 +305,6 @@ class LoginService(
         object CouldNotParseIndexResponseBody : Error()
         object CouldNotParseSessionValuesFromIndextHtml : Error()
         object CouldNotGetRidingLessons : Error()
-
-
     }
+
 }

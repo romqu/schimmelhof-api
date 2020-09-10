@@ -1,7 +1,7 @@
 package de.romqu.schimmelhofapi.domain
 
 import de.romqu.schimmelhofapi.data.RidingLessonRepository
-import de.romqu.schimmelhofapi.data.SessionEntity
+import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.shared.mapError
 import org.springframework.stereotype.Service
 

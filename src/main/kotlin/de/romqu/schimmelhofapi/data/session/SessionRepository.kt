@@ -1,4 +1,4 @@
-package de.romqu.schimmelhofapi.data
+package de.romqu.schimmelhofapi.data.session
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Repository
@@ -19,7 +19,7 @@ class SessionRepository(
         return sessionEntity
     }
 
-    fun get(uuid: UUID): SessionEntity {
+    fun getBy(uuid: UUID): SessionEntity {
         val sessionJson = jedis.get(uuid.toString())
 
         return objectMapper.readValue(sessionJson, SessionEntity::class.java)
@@ -27,11 +27,3 @@ class SessionRepository(
 }
 
 
-data class SessionEntity(
-    val uuid: UUID,
-    val cookie: String,
-    val cookieWeb: String,
-    val viewState: String,
-    val viewStateGenerator: String,
-    val eventValidation: String,
-)

@@ -1,18 +1,18 @@
 package de.romqu.schimmelhofapi.data
 
 
-import de.romqu.schimmelhofapi.data.shared.HttpCall
-import de.romqu.schimmelhofapi.data.shared.HttpCallDelegate
-import de.romqu.schimmelhofapi.data.shared.HttpCallRequestData
+import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.shared.constant.LOGIN_URL
+import de.romqu.schimmelhofapi.data.shared.httpcall.*
 import de.romqu.schimmelhofapi.shared.Result
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Repository
 
 @Repository
 class UserRepository(
-    private val httpCallDelegate: HttpCallDelegate
-) : HttpCall by httpCallDelegate {
+    private val httpCallDelegate: HttpCallDelegate,
+    private val postCallDelegate: PostCallDelegate
+) : HttpCall by httpCallDelegate, PostCall by postCallDelegate {
 
     fun login(
         username: String,
