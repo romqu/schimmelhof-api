@@ -95,7 +95,8 @@ class LoginService(
                 val htmlDocument = out.responseBody.convertToDocument(INITIAL_URL)
 
                 // TODO: improve
-                out.responseBody.close()
+                out.responseBody
+                    .close()
 
                 Result.Success(GetHtmlDocumentFromBodyOut(out.sanitizedCookie, htmlDocument))
 

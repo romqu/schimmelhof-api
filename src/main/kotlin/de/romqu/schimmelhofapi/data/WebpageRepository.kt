@@ -11,8 +11,8 @@ import org.springframework.stereotype.Repository
 @Repository
 class WebpageRepository(
     private val httpCallDelegate: HttpCallDelegate,
-    private val getCallDelegate: GetCallDelegate
-) : HttpCall by httpCallDelegate, GetCall by getCallDelegate {
+    private val getCallDelegate: HttpGetCallDelegate
+) : HttpCall by httpCallDelegate, HttpGetCall by getCallDelegate {
 
     fun getHomePage(): Result<HttpCall.Error, HttpCall.Response> {
         val request = Request.Builder().url(LOGIN_URL).get().build()
@@ -25,7 +25,7 @@ class WebpageRepository(
     ): Result<HttpCall.Error, HttpCall.Response> {
 
         val requestData = with(sessionEntity) {
-            HttpCallRequestData(
+            HttpCallRequest(
                 cookie = cookie,
                 cookieWeb = cookieWeb,
                 viewState = viewState,

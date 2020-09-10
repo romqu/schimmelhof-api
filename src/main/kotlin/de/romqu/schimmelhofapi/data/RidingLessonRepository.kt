@@ -11,8 +11,8 @@ import java.time.format.DateTimeFormatter
 @Repository
 class RidingLessonRepository(
     private val httpCallDelegate: HttpCallDelegate,
-    private val postCallDelegate: PostCallDelegate
-) : HttpCall by httpCallDelegate, PostCall by postCallDelegate {
+    private val postCallDelegate: HttpPostCallDelegate
+) : HttpCall by httpCallDelegate, HttpPostCall by postCallDelegate {
 
     enum class CmdWeek(val symbol: String, val command: String) {
         NEXTWEEK(">>", "cmdNextWeek"),
@@ -31,7 +31,7 @@ class RidingLessonRepository(
     ): Result<HttpCall.Error, HttpCall.Response> {
 
         val requestData = with(sessionEntity) {
-            HttpCallRequestData(
+            HttpCallRequest(
                 cookie = cookie,
                 cookieWeb = cookieWeb,
                 viewState = viewState,
@@ -78,7 +78,7 @@ class RidingLessonRepository(
     ): Result<HttpCall.Error, HttpCall.Response> {
 
         val requestData = with(sessionEntity) {
-            HttpCallRequestData(
+            HttpCallRequest(
                 cookie = cookie,
                 cookieWeb = cookieWeb,
                 viewState = viewState,
@@ -100,7 +100,7 @@ class RidingLessonRepository(
     ): Result<HttpCall.Error, HttpCall.Response> {
 
         val requestData = with(sessionEntity) {
-            HttpCallRequestData(
+            HttpCallRequest(
                 cookie = cookie,
                 cookieWeb = cookieWeb,
                 viewState = viewState,

@@ -11,8 +11,8 @@ import org.springframework.stereotype.Repository
 @Repository
 class UserRepository(
     private val httpCallDelegate: HttpCallDelegate,
-    private val postCallDelegate: PostCallDelegate
-) : HttpCall by httpCallDelegate, PostCall by postCallDelegate {
+    private val postCallDelegate: HttpPostCallDelegate
+) : HttpCall by httpCallDelegate, HttpPostCall by postCallDelegate {
 
     fun login(
         username: String,
@@ -21,7 +21,7 @@ class UserRepository(
     ): Result<HttpCall.Error, HttpCall.Response> {
 
         val requestData = with(sessionEntity) {
-            HttpCallRequestData(
+            HttpCallRequest(
                 cookie = cookie,
                 cookieWeb = cookieWeb,
                 viewState = viewState,
@@ -33,7 +33,7 @@ class UserRepository(
         val request = createPostRequest(
             url = LOGIN_URL,
             addToRequestBody = "",
-            httpCallRequestData = requestData
+            httpCallRequest = requestData
         )
 
         return makeCall(request) { response, responseBody ->

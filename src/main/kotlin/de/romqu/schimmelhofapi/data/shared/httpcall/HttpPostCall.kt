@@ -8,22 +8,22 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.stereotype.Component
 import java.net.URL
 
-interface PostCall {
+interface HttpPostCall {
     fun createPostRequest(
         url: URL,
         addToRequestBody: String,
-        httpCallRequestData: HttpCallRequestData
+        httpCallRequest: HttpCallRequest
     ): Request
 }
 
 @Component
-class PostCallDelegate : PostCall {
+class HttpPostCallDelegate : HttpPostCall {
 
     override fun createPostRequest(
         url: URL,
         addToRequestBody: String,
-        httpCallRequestData: HttpCallRequestData
-    ): Request = with(httpCallRequestData) {
+        httpCallRequest: HttpCallRequest
+    ): Request = with(httpCallRequest) {
 
         Request.Builder()
             .url(url)

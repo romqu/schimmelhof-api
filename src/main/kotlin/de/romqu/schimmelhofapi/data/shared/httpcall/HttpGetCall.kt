@@ -6,15 +6,15 @@ import okhttp3.Request
 import org.springframework.stereotype.Component
 import java.net.URL
 
-interface GetCall {
-    fun createGetRequest(url: URL, httpCallRequestData: HttpCallRequestData): Request
+interface HttpGetCall {
+    fun createGetRequest(url: URL, httpCallRequest: HttpCallRequest): Request
 }
 
 @Component
-class GetCallDelegate : GetCall {
+class HttpGetCallDelegate : HttpGetCall {
 
-    override fun createGetRequest(url: URL, httpCallRequestData: HttpCallRequestData): Request =
-        with(httpCallRequestData) {
+    override fun createGetRequest(url: URL, httpCallRequest: HttpCallRequest): Request =
+        with(httpCallRequest) {
             val builder = Request.Builder()
             val builderHeaderStep =
                 if (cookie.isNotEmpty()) {

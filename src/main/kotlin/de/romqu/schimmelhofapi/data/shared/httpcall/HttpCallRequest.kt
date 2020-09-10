@@ -1,6 +1,6 @@
 package de.romqu.schimmelhofapi.data.shared.httpcall
 
-data class HttpCallRequestData(
+data class HttpCallRequest(
     val cookie: String,
     val cookieWeb: String,
     val viewState: String,
