@@ -19,6 +19,12 @@ class GetStateValuesFromHtmlDocumentTask {
         EVENT_VALIDATION to ""
     )
 
+    class Out(
+        val viewState: String,
+        val viewStateGenerator: String,
+        val eventValidation: String,
+    )
+
     fun execute(htmlDocument: Document): Result<CouldNotParseStateValuesFromHtmlDocumentError, Out> =
         getStateValuesFromHtml(htmlDocument)
 
@@ -41,12 +47,6 @@ class GetStateValuesFromHtmlDocumentTask {
             )
         )
     }
-
-    class Out(
-        val viewState: String,
-        val viewStateGenerator: String,
-        val eventValidation: String,
-    )
 
     object CouldNotParseStateValuesFromHtmlDocumentError
 }

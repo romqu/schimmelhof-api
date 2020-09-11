@@ -1,24 +1,22 @@
 package de.romqu.schimmelhofapi.domain
 
 
-import de.romqu.schimmelhofapi.INITIAL_URL
 import de.romqu.schimmelhofapi.SET_COOKIE_HEADER
 import de.romqu.schimmelhofapi.data.UserRepository
 import de.romqu.schimmelhofapi.data.WebpageRepository
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.session.SessionRepository
+import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
+import de.romqu.schimmelhofapi.data.shared.constant.INITIAL_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
-import de.romqu.schimmelhofapi.shared.Result
-import de.romqu.schimmelhofapi.shared.flatMap
-import de.romqu.schimmelhofapi.shared.map
-import de.romqu.schimmelhofapi.shared.mapError
+import de.romqu.schimmelhofapi.shared.*
 import okhttp3.Headers
 import okhttp3.ResponseBody
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.springframework.stereotype.Service
 import java.io.IOException
-import java.util.*
+import java.net.URL
 
 
 @Service
@@ -30,33 +28,31 @@ class LoginService(
     private val getRidingLessonsTask: GetRidingLessonsTask,
 ) {
 
-    class Out(
+    class Response(
         val ridingLessonMap: Map<GetRidingLessonsTask.Weekday, List<GetRidingLessonsTask.RidingLessonTableEntry>>,
         val sessionEntity: SessionEntity
     )
 
-    fun execute(username: String, passwordPlain: String) =
+    fun execute(username: String, passwordPlain: String): Result<Error, Response> =
         webpageRepository.getHomePage()
-            .getInitialCookie()
-            .sanitizeCookie()
+            .getInitialSanitizedCookie()
             .getHtmlDocumentFromBody()
             .getStateValuesFromInitialHtml()
             .doLogin(username, passwordPlain)
-            .getCookieWebFromLoginHeaders()
-            .sanitizeCookieWeb()
+            .getSanitizedCookieWeb()
             .getHtmlDocumentFromIndexBody()
             .getSateValuesFromIndexHtml()
             .saveSession()
             .getRidingLessons()
 
-    private fun Result<HttpCall.Error, HttpCall.Response>.getInitialCookie()
-        : Result<Error, GetInitialCookieOut> =
+    private fun Result<HttpCall.Error, HttpCall.Response>.getInitialSanitizedCookie()
+        : Result<Error, GetInitialSanitizedCookieOut> =
         doOn({ response ->
-            val setCookieHeaderValue = response.headers.getSetCookieValue()
+            val setCookieHeaderValue = response.headers.getSetCookieValue()?.sanitizeCookie()
 
             if (setCookieHeaderValue != null)
                 Result.Success(
-                    GetInitialCookieOut(
+                    GetInitialSanitizedCookieOut(
                         setCookieHeaderValue,
                         response.responseBody
                     )
@@ -71,34 +67,17 @@ class LoginService(
             }
         })
 
-    class GetInitialCookieOut(val initialCookie: String, val responseBody: ResponseBody)
+    class GetInitialSanitizedCookieOut(val initialSanitizedCookie: String, val responseBody: ResponseBody)
 
-    private fun Result<Error, GetInitialCookieOut>.sanitizeCookie(): Result<Error, SanitizeCookieOut> =
-        flatMap { getInitialCookieOut ->
-            val sanitizedCookie = getInitialCookieOut.initialCookie.sanitizeCookie()
-
-            if (sanitizedCookie != getInitialCookieOut.initialCookie)
-                Result.Success(
-                    SanitizeCookieOut(
-                        sanitizedCookie,
-                        getInitialCookieOut.responseBody
-                    )
-                )
-            else Result.Failure(Error.CookieCouldNotBeSanitized)
-        }
-
-    class SanitizeCookieOut(val sanitizedCookie: String, val responseBody: ResponseBody)
-
-    private fun Result<Error, SanitizeCookieOut>.getHtmlDocumentFromBody(): Result<Error, GetHtmlDocumentFromBodyOut> =
+    private fun Result<Error, GetInitialSanitizedCookieOut>.getHtmlDocumentFromBody(): Result<Error, GetHtmlDocumentFromBodyOut> =
         flatMap { out ->
             try {
                 val htmlDocument = out.responseBody.convertToDocument(INITIAL_URL)
 
                 // TODO: improve
-                out.responseBody
-                    .close()
+                out.responseBody.close()
 
-                Result.Success(GetHtmlDocumentFromBodyOut(out.sanitizedCookie, htmlDocument))
+                Result.Success(GetHtmlDocumentFromBodyOut(out.initialSanitizedCookie, htmlDocument))
 
             } catch (ex: IOException) {
                 Result.Failure(Error.CouldNotParseResponseBody)
@@ -132,127 +111,84 @@ class LoginService(
         userName: String,
         passwordPlain: String
     ): Result<Error, DoLoginOut> = flatMap { out ->
-        userRepository.login(
-            username = userName,
-            password = passwordPlain,
+
+        val session = SessionEntity(
             viewState = out.viewState,
             viewStateGenerator = out.viewStateGenerator,
             eventValidation = out.eventValidation,
             cookie = out.sanitizedCookie
-        ).mapError(Error.Network) { loginHeaders ->
+        )
+
+        userRepository.login(
+            username = userName,
+            password = passwordPlain,
+            session = session
+        ).doOnResult({ loginHeaders ->
             DoLoginOut(
-                sanitizedCookie = out.sanitizedCookie,
-                viewState = out.viewState,
-                viewStateGenerator = out.viewStateGenerator,
-                eventValidation = out.eventValidation,
+                session = session,
                 loginHeaders = loginHeaders
             )
-        }
+        }, { error ->
+            when (error) {
+                is HttpCall.Error.ResponseUnsuccessful ->
+                    Error.Network(statusCode = error.statusCode)
+                is HttpCall.Error.CallUnsuccessful ->
+                    Error.Network(error.message)
+            }
+        })
     }
 
     class DoLoginOut(
-        val sanitizedCookie: String,
-        val viewState: String,
-        val viewStateGenerator: String,
-        val eventValidation: String,
+        val session: SessionEntity,
         val loginHeaders: Headers
     )
 
+    private fun Result<Error, DoLoginOut>.getSanitizedCookieWeb()
+        : Result<Error, SessionEntity> = flatMap { out ->
+        val sanitizedCookieWeb = out.loginHeaders.getSetCookieValue()?.sanitizeCookie()
 
-    private fun Result<Error, DoLoginOut>.getCookieWebFromLoginHeaders()
-        : Result<Error, GetCookieWebFromLoginHeadersOut> = flatMap { out ->
-        val setCookieWebHeaderValue = out.loginHeaders.getSetCookieValue()
-
-        if (setCookieWebHeaderValue != null)
-            Result.Success(
-                GetCookieWebFromLoginHeadersOut(
-                    sanitizedCookie = out.sanitizedCookie,
-                    setCookieWebHeaderValue = setCookieWebHeaderValue,
-                    viewState = out.viewState,
-                    viewStateGenerator = out.viewStateGenerator,
-                    eventValidation = out.eventValidation,
-                )
-
-            )
+        if (sanitizedCookieWeb != null)
+            Result.Success(out.session.copy(cookieWeb = sanitizedCookieWeb))
         else Result.Failure(Error.CookieWebDoesNotExist)
 
     }
-
-    class GetCookieWebFromLoginHeadersOut(
-        val sanitizedCookie: String,
-        val setCookieWebHeaderValue: String,
-        val viewState: String,
-        val viewStateGenerator: String,
-        val eventValidation: String,
-    )
-
-    private fun Result<Error, GetCookieWebFromLoginHeadersOut>.sanitizeCookieWeb()
-        : Result<Error, SanitizeCookieWebOut> =
-        flatMap { out ->
-            val sanitizedCookieWeb = out.setCookieWebHeaderValue.sanitizeCookie()
-
-            if (sanitizedCookieWeb != out.setCookieWebHeaderValue)
-                Result.Success(
-                    SanitizeCookieWebOut(
-                        sanitizedCookie = out.sanitizedCookie,
-                        sanitizedCookieWeb = sanitizedCookieWeb,
-                        viewState = out.viewState,
-                        viewStateGenerator = out.viewStateGenerator,
-                        eventValidation = out.eventValidation,
-                    )
-                )
-            else Result.Failure(Error.CookieWebCouldNotBeSanitized)
-        }
-
-    class SanitizeCookieWebOut(
-        val sanitizedCookie: String,
-        val sanitizedCookieWeb: String,
-        val viewState: String,
-        val viewStateGenerator: String,
-        val eventValidation: String,
-    )
 
     private fun Headers.getSetCookieValue(): String? = this[SET_COOKIE_HEADER]
 
     private fun String.sanitizeCookie(): String = substringBefore(";")
 
-    private fun Result<Error, SanitizeCookieWebOut>.getHtmlDocumentFromIndexBody()
+    private fun Result<Error, SessionEntity>.getHtmlDocumentFromIndexBody()
         : Result<Error, GetHtmlDocumentFromIndexBodyOut> =
-        flatMap { out ->
-            webpageRepository.getIndexPage(
-                cookie = out.sanitizedCookie,
-                cookieWeb = out.sanitizedCookieWeb
-            ).mapError(Error.CouldNotParseIndexResponseBody) { body ->
-                val indexHtmlDocument = body.convertToDocument(INDEX_URL)
+        flatMap { session ->
+            webpageRepository.getIndexPage(session)
+                .doOnResult({ httpResponse ->
+                    val indexHtmlDocument = httpResponse.responseBody.convertToDocument(INDEX_URL)
 
-                GetHtmlDocumentFromIndexBodyOut(
-                    sanitizedCookie = out.sanitizedCookie,
-                    sanitizedCookieWeb = out.sanitizedCookieWeb,
-                    viewState = out.viewState,
-                    viewStateGenerator = out.viewStateGenerator,
-                    eventValidation = out.eventValidation,
-                    indexHtmlDocument = indexHtmlDocument
-                )
-            }
+                    GetHtmlDocumentFromIndexBodyOut(
+                        session = session,
+                        indexHtmlDocument = indexHtmlDocument
+                    )
+                }, { error ->
+                    when (error) {
+                        is HttpCall.Error.ResponseUnsuccessful ->
+                            Error.Network(statusCode = error.statusCode)
+                        is HttpCall.Error.CallUnsuccessful ->
+                            Error.Network(error.message)
+                    }
+                })
         }
 
     class GetHtmlDocumentFromIndexBodyOut(
-        val sanitizedCookie: String,
-        val sanitizedCookieWeb: String,
-        val viewState: String,
-        val viewStateGenerator: String,
-        val eventValidation: String,
+        val session: SessionEntity,
         val indexHtmlDocument: Document
     )
 
     private fun Result<Error, GetHtmlDocumentFromIndexBodyOut>.getSateValuesFromIndexHtml()
-        : Result<Error, GetSateValuesFromIndexHtmlOut> =
+        : Result<Error, SessionEntity> =
         flatMap { out ->
             getStateValuesFromHtmlDocumentTask.execute(out.indexHtmlDocument)
                 .mapError(Error.CouldNotParseSessionValuesFromIndextHtml) { stateValuesOut ->
-                    GetSateValuesFromIndexHtmlOut(
-                        sanitizedCookie = out.sanitizedCookie,
-                        sanitizedCookieWeb = out.sanitizedCookieWeb,
+                    out.session.copy(
                         viewState = stateValuesOut.viewState,
                         viewStateGenerator = stateValuesOut.viewStateGenerator,
                         eventValidation = stateValuesOut.eventValidation,
@@ -260,39 +196,20 @@ class LoginService(
                 }
         }
 
-    class GetSateValuesFromIndexHtmlOut(
-        val sanitizedCookie: String,
-        val sanitizedCookieWeb: String,
-        val viewState: String,
-        val viewStateGenerator: String,
-        val eventValidation: String,
-    )
-
-    private fun Result<Error, GetSateValuesFromIndexHtmlOut>.saveSession(): Result<Error, SessionEntity> =
-        map { out ->
-            val session = SessionEntity(
-                uuid = UUID.randomUUID(),
-                cookie = out.sanitizedCookie,
-                cookieWeb = out.sanitizedCookieWeb,
-                viewState = out.viewState,
-                viewStateGenerator = out.viewStateGenerator,
-                eventValidation = out.eventValidation,
-            )
-
-            sessionRepository.saveOrUpdate(session)
-        }
+    private fun Result<Error, SessionEntity>.saveSession(): Result<Error, SessionEntity> =
+        map(sessionRepository::saveOrUpdate)
 
     private fun Result<Error, SessionEntity>.getRidingLessons() = flatMap { session ->
         getRidingLessonsTask.execute(session.uuid)
             .mapError(Error.CouldNotGetRidingLessons) {
-                Out(it, session)
+                Response(it, session)
             }
     }
 
-    private fun ResponseBody.convertToDocument(url: String) = Jsoup.parse(
+    private fun ResponseBody.convertToDocument(url: URL) = Jsoup.parse(
         byteStream(),
         Charsets.UTF_8.name(),
-        url
+        url.toString()
     )
 
     sealed class Error {
@@ -307,5 +224,4 @@ class LoginService(
         object CouldNotParseSessionValuesFromIndextHtml : Error()
         object CouldNotGetRidingLessons : Error()
     }
-
 }

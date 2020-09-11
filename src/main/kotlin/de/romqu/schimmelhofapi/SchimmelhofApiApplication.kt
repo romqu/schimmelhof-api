@@ -8,7 +8,6 @@ import org.springframework.http.converter.protobuf.ProtobufHttpMessageConverter
 
 const val SET_COOKIE_HEADER = "Set-Cookie"
 const val COOKIE_HEADER = "Cookie"
-const val INITIAL_URL = "https://onlineplaner.schimmelhofbremen.de:446/login.aspx?ReturnUrl=%2findex.aspx"
 
 @SpringBootApplication
 class SchimmelhofApiApplication {

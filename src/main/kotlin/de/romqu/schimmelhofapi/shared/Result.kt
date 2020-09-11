@@ -61,6 +61,15 @@ inline fun <F, S, R> Result<F, S>.doOn(
         is Result.Success -> success(data)
     }
 
+inline fun <F, S, R, F2> Result<F, S>.doOnResult(
+    success: (S) -> R,
+    failure: (F) -> F2
+): Result<F2, R> =
+    when (this) {
+        is Result.Failure -> Result.Failure(failure(this.failure))
+        is Result.Success -> Result.Success(success(data))
+    }
+
 inline fun <F, S, reified E : Any> Result<F, S>.doOnFailureElseContinue(
     failureType: E,
     `do`: (E) -> Result<F, S>
@@ -129,6 +138,12 @@ inline fun <F, S, R, F2> Result<F, S>.flatMapError(
 ): Result<F2, R> =
     doOn(transform, { Result.Failure(error) })
 
+inline fun <F, S, R, F2> Result<F, S>.flatMapError(
+    transform: (S) -> Result<F2, R>,
+    transformError: (F) -> F2
+): Result<F2, R> =
+    doOn(transform, { Result.Failure(transformError((this as Result.Failure).failure)) })
+
 inline fun <F, S, R> Result<F, S>.map(transform: (S) -> R): Result<F, R> =
     flatMap { Result.Success(transform(it)) }
 
@@ -137,6 +152,12 @@ inline fun <F, S, R, F2> Result<F, S>.mapError(
     transform: (S) -> R = { it as R }
 ): Result<F2, R> =
     flatMapError(error) { Result.Success(transform(it)) }
+
+inline fun <F, S, R, F2> Result<F, S>.mapWithError(
+    transform: (S) -> R = { it as R },
+    transformError: (F) -> F2
+): Result<F2, R> =
+    flatMapError({ Result.Success(transform(it)) }, transformError)
 
 inline fun <S1, S2, F, R> Result<F, S1>.zipWith(
     result2: Result<F, S2>,

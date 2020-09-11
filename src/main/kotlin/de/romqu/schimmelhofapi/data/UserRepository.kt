@@ -5,6 +5,7 @@ import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.shared.constant.LOGIN_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.*
 import de.romqu.schimmelhofapi.shared.Result
+import okhttp3.Headers
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Repository
 
@@ -17,10 +18,10 @@ class UserRepository(
     fun login(
         username: String,
         password: String,
-        sessionEntity: SessionEntity
-    ): Result<HttpCall.Error, HttpCall.Response> {
+        session: SessionEntity
+    ): Result<HttpCall.Error, Headers> {
 
-        val requestData = with(sessionEntity) {
+        val requestData = with(session) {
             HttpCallRequest(
                 cookie = cookie,
                 cookieWeb = cookieWeb,
@@ -36,10 +37,10 @@ class UserRepository(
             httpCallRequest = requestData
         )
 
-        return makeCall(request) { response, responseBody ->
+        return makeNullableBodyCall(request) { response ->
             // due to the redirect
             if (response.code == HttpStatus.FOUND.value()) {
-                Result.Success(HttpCall.Response(response.headers, responseBody))
+                Result.Success(response.headers)
             } else {
                 Result.Failure(HttpCall.Error.ResponseUnsuccessful(
                     response.code, response.message

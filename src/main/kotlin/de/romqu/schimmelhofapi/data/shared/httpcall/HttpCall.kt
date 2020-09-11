@@ -16,7 +16,12 @@ interface HttpCall {
         ) -> Result<F, S>
     ): Result<Error, S>
 
-    fun makeNoBodyCall(request: Request): Result<Error, Headers>
+    fun makeNullableBodyCall(request: Request): Result<Error, Headers>
+
+    fun <F : Error, S : Any> makeNullableBodyCall(
+        request: Request,
+        withResponse: (response: okhttp3.Response) -> Result<F, S>
+    ): Result<Error, S>
 
     sealed class Error {
         class ResponseUnsuccessful(val statusCode: Int, statusMessage: String) : Error()
@@ -65,7 +70,7 @@ class HttpCallDelegate(private val httpClient: OkHttpClient) : HttpCall {
         Result.Failure(HttpCall.Error.CallUnsuccessful(ex.toString()))
     }
 
-    override fun makeNoBodyCall(request: Request): Result<HttpCall.Error, Headers> {
+    override fun makeNullableBodyCall(request: Request): Result<HttpCall.Error, Headers> {
         return try {
             val response = httpClient.newCall(request).execute()
 
@@ -78,5 +83,21 @@ class HttpCallDelegate(private val httpClient: OkHttpClient) : HttpCall {
         } catch (ex: IOException) {
             Result.Failure(HttpCall.Error.CallUnsuccessful(ex.toString()))
         }
+    }
+
+    override fun <F : HttpCall.Error, S : Any> makeNullableBodyCall(
+        request: Request,
+        withResponse: (response: Response) -> Result<F, S>
+    ): Result<HttpCall.Error, S> = try {
+        val response = httpClient.newCall(request).execute()
+        val responseBody = response.body
+        if (responseBody != null) {
+            withResponse(response)
+        } else Result.Failure(HttpCall.Error.ResponseUnsuccessful(
+            response.code,
+            response.message
+        ))
+    } catch (ex: IOException) {
+        Result.Failure(HttpCall.Error.CallUnsuccessful(ex.toString()))
     }
 }

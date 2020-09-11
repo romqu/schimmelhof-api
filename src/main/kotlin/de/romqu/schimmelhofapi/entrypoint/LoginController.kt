@@ -25,9 +25,9 @@ class LoginController(
         passwordPlain = loginDtoIn.passwordPlain
     ).doOn({ onSuccess(it, httpServletResponse) }, { onFailure(it, httpServletResponse) })
 
-    fun onSuccess(out: LoginService.Out, httpServletResponse: HttpServletResponse): LoginDtoOut {
+    fun onSuccess(response: LoginService.Response, httpServletResponse: HttpServletResponse): LoginDtoOut {
         httpServletResponse.status = HttpStatus.OK.value()
-        val ridingLessonDayDtos = out.ridingLessonMap.map { entry ->
+        val ridingLessonDayDtos = response.ridingLessonMap.map { entry ->
 
             val weekdayDto = WeekdayDto.valueOf(entry.key.name)
 
