@@ -15,7 +15,8 @@ class RidingLessonRepository(
 ) : HttpCall by httpCallDelegate, HttpPostCall by postCallDelegate {
 
     enum class CmdWeek(val symbol: String, val command: String) {
-        NEXTWEEK(">>", "cmdNextWeek"),
+        SHOW_WEEK("anzeigen", "cmdSearch"),
+        NEXT_WEEK(">>", "cmdNextWeek"),
         PREVIOUS_WEEK("<<", "cmdPrevWeek")
     }
 
@@ -37,7 +38,7 @@ class RidingLessonRepository(
                 viewState = viewState,
                 viewStateGenerator = viewStateGenerator,
                 eventValidation = eventValidation,
-                eventArgument = "cmdSearch"
+                eventTarget = CmdWeek.SHOW_WEEK.command
             )
         }
 

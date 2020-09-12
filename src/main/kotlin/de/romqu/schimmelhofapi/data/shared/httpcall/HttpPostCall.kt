@@ -30,7 +30,7 @@ class HttpPostCallDelegate : HttpPostCall {
             .addHeader(COOKIE_HEADER, """$cookie; $cookieWeb""")
             .addHeader(HEADER_CONTENT_TYPE, MIME_X_WWW_FORM_URLENCODED)
             .post(
-                (REQUEST_EVENT_TARGET_KEY +
+                ("$REQUEST_EVENT_TARGET_KEY$eventTarget" +
                     "$REQUEST_EVENT_ARGUMENT_KEY$eventArgument" +
                     REQUEST_LAST_FOCUS_KEY +
                     "$REQUEST_VIEW_STATE_KEY$viewState" +

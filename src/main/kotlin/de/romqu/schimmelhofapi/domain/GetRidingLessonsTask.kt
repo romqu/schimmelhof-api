@@ -12,7 +12,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.springframework.stereotype.Service
 import java.io.IOException
-import java.util.*
+import java.time.OffsetDateTime
 
 @Service
 class GetRidingLessonsTask(
@@ -36,29 +36,22 @@ class GetRidingLessonsTask(
         WARTELISTE_STORNIEREN("Warteliste stornieren")
     }
 
-    fun execute(sessionUuid: UUID) =
-        sessionRepository.getBy(sessionUuid)
-            .getRidingLessonsBody()
+    fun execute(session: SessionEntity) =
+        getRidingLessonsBody(session)
             .convertBodyToHtmlDocument()
             .parseRidingLessonTableEntries()
 
 
-    private fun SessionEntity.getRidingLessonsBody(): Result<Error, RidingLessonRepository.GetRidingLessonsResponse> {
+    private fun getRidingLessonsBody(session: SessionEntity): Result<Error, RidingLessonRepository.GetRidingLessonsResponse> {
 
-/*        val now = OffsetDateTime.now()
+        val now = OffsetDateTime.now()
 
         val from =
             if (now.dayOfWeek == DayOfWeek.MONDAY) now else now.with(TemporalAdjusters.previous(DayOfWeek.MONDAY))
 
-        val to = from.with(TemporalAdjusters.next(DayOfWeek.SUNDAY)) */
+        val to = from.with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
 
-        return ridingLessonRepository.getRidingLessons(
-            cookie = cookie,
-            cookieWeb = cookieWeb,
-            viewState = viewState,
-            viewStateGenerator = viewStateGenerator,
-            eventValidation = eventValidation
-        ).mapError(Error.Network)
+        return ridingLessonRepository.getRidingLessons(session).mapError(Error.Network)
     }
 
     private fun Result<Error, RidingLessonRepository.GetRidingLessonsResponse>.convertBodyToHtmlDocument()
