@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package entrypoint;
+package entrypoint.login;
 
-option java_package = "de.romqu.schimmelhofapi.entrypoint";
+option java_package = "de.romqu.schimmelhofapi.entrypoint.login";
 option java_multiple_files = true;
 
 import "RidingLessonDayDto.proto";

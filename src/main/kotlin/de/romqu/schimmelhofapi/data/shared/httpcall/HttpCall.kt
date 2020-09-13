@@ -24,7 +24,7 @@ interface HttpCall {
     ): Result<Error, S>
 
     sealed class Error {
-        class ResponseUnsuccessful(val statusCode: Int, statusMessage: String) : Error()
+        class ResponseUnsuccessful(val statusCode: Int, val statusMessage: String) : Error()
         class CallUnsuccessful(val message: String) : Error()
     }
 

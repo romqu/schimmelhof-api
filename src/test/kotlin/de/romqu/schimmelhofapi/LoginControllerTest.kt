@@ -1,8 +1,8 @@
 package de.romqu.schimmelhofapi
 
-import de.romqu.schimmelhofapi.entrypoint.LoginController
 import de.romqu.schimmelhofapi.entrypoint.LoginDtoIn
 import de.romqu.schimmelhofapi.entrypoint.LoginDtoOut
+import de.romqu.schimmelhofapi.entrypoint.login.LoginController
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance

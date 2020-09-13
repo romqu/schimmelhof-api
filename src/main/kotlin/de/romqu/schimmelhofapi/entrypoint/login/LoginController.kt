@@ -1,6 +1,9 @@
-package de.romqu.schimmelhofapi.entrypoint
+package de.romqu.schimmelhofapi.entrypoint.login
 
 import de.romqu.schimmelhofapi.domain.LoginService
+import de.romqu.schimmelhofapi.entrypoint.RidingLessonDayDto
+import de.romqu.schimmelhofapi.entrypoint.RidingLessonDto
+import de.romqu.schimmelhofapi.entrypoint.WeekdayDto
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody

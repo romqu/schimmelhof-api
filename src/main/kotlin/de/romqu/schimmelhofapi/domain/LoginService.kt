@@ -200,7 +200,7 @@ class LoginService(
         map(sessionRepository::saveOrUpdate)
 
     private fun Result<Error, SessionEntity>.getRidingLessons() = flatMap { session ->
-        getRidingLessonsTask.execute(session.uuid)
+        getRidingLessonsTask.execute(session)
             .mapError(Error.CouldNotGetRidingLessons) {
                 Response(it, session)
             }
