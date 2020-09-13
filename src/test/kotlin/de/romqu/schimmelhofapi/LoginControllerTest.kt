@@ -1,8 +1,8 @@
 package de.romqu.schimmelhofapi
 
-import de.romqu.schimmelhofapi.entrypoint.LoginDtoIn
-import de.romqu.schimmelhofapi.entrypoint.LoginDtoOut
 import de.romqu.schimmelhofapi.entrypoint.login.LoginController
+import de.romqu.schimmelhofapi.entrypoint.login.LoginDtoIn
+import de.romqu.schimmelhofapi.entrypoint.login.LoginDtoOut
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -43,7 +43,8 @@ class LoginControllerTest {
             .response
             .contentAsByteArray
 
+        val loginDtoOut = LoginDtoOut.parseFrom(bytes)
 
-        assertThat(LoginDtoOut.parseFrom(bytes)).isNotNull
+        assertThat(loginDtoOut).isNotNull
     }
 }

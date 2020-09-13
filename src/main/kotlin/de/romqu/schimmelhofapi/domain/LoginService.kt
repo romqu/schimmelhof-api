@@ -213,7 +213,7 @@ class LoginService(
     )
 
     sealed class Error {
-        class Network(val message: String = "", val statusCode: Int = -1) : Error()
+        data class Network(val message: String = "", val statusCode: Int = -1) : Error()
         object CookieDoesNotExist : Error()
         object CookieCouldNotBeSanitized : Error()
         object CouldNotParseResponseBody : Error()

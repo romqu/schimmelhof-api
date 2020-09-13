@@ -30,7 +30,7 @@ message RidingLessonDto {
 
   enum  RidingLessonAction {
     NONE = 0;
-    BOO = 1;
+    BOOK = 1;
     ON_WAIT_LIST = 2;
     CANCEL_BOOKING = 3;
     CANCEL_WAIT_LIST = 4;

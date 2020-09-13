@@ -135,23 +135,35 @@ class GetRidingLessonsTask(
                                         place = it.textNodes()[3].wholeText,
                                     )
 
-                                    val tableEntryNext = if (inputValue.isNotEmpty()) {
-                                        when (BookedInputValue.valueOf(inputValue.toUpperCase().replace(" ", "_"))) {
-                                            BookedInputValue.STORNIEREN -> tableEntry.copy(
-                                                state = RidingLessonState.BOOKED,
-                                                action = RidingLessonAction.CANCEL_BOOKING
-                                            )
-                                            BookedInputValue.WARTELISTE ->
+                                    val isExpiredAndBooked = element.select("span[title=gebucht]")
+                                        .isNotEmpty()
+
+                                    val tableEntryNext =
+                                        when {
+                                            isExpiredAndBooked -> {
                                                 tableEntry.copy(
-                                                    state = RidingLessonState.BOOKED_OUT,
-                                                    action = RidingLessonAction.ON_WAIT_LIST
+                                                    state = RidingLessonState.EXPIRED_BOOKED
                                                 )
-                                            BookedInputValue.WARTELISTE_STORNIEREN -> tableEntry.copy(
-                                                state = RidingLessonState.WAIT_LIST,
-                                                action = RidingLessonAction.CANCEL_WAIT_LIST
-                                            )
+                                            }
+                                            inputValue.isNotEmpty() -> {
+                                                when (BookedInputValue.valueOf(inputValue.toUpperCase().replace(" ", "_"))) {
+                                                    BookedInputValue.STORNIEREN -> tableEntry.copy(
+                                                        state = RidingLessonState.BOOKED,
+                                                        action = RidingLessonAction.CANCEL_BOOKING
+                                                    )
+                                                    BookedInputValue.WARTELISTE ->
+                                                        tableEntry.copy(
+                                                            state = RidingLessonState.BOOKED_OUT,
+                                                            action = RidingLessonAction.ON_WAIT_LIST
+                                                        )
+                                                    BookedInputValue.WARTELISTE_STORNIEREN -> tableEntry.copy(
+                                                        state = RidingLessonState.WAIT_LIST,
+                                                        action = RidingLessonAction.CANCEL_WAIT_LIST
+                                                    )
+                                                }
+                                            }
+                                            else -> tableEntry
                                         }
-                                    } else tableEntry
 
                                     if (inputElementIdValue.isNotEmpty()) {
                                         val lessonCmd = inputElementIdValue.substringBefore("_")
@@ -187,6 +199,7 @@ class GetRidingLessonsTask(
 
     enum class RidingLessonState {
         EXPIRED,
+        EXPIRED_BOOKED,
         BOOKED_OUT,
         WAIT_LIST,
         BOOKED,
