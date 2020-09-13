@@ -13,14 +13,14 @@ interface HttpCall {
         request: Request,
         withResponse: (
             response: okhttp3.Response, responseBody: ResponseBody,
-        ) -> Result<F, S>
+        ) -> Result<F, S>,
     ): Result<Error, S>
 
     fun makeNullableBodyCall(request: Request): Result<Error, Headers>
 
     fun <F : Error, S : Any> makeNullableBodyCall(
         request: Request,
-        withResponse: (response: okhttp3.Response) -> Result<F, S>
+        withResponse: (response: okhttp3.Response) -> Result<F, S>,
     ): Result<Error, S>
 
     sealed class Error {
@@ -30,7 +30,7 @@ interface HttpCall {
 
     class Response(
         val headers: Headers,
-        val responseBody: ResponseBody
+        val responseBody: ResponseBody,
     )
 }
 
@@ -56,7 +56,7 @@ class HttpCallDelegate(private val httpClient: OkHttpClient) : HttpCall {
 
     override fun <F : HttpCall.Error, S : Any> makeCall(
         request: Request,
-        withResponse: (response: Response, responseBody: ResponseBody) -> Result<F, S>
+        withResponse: (response: Response, responseBody: ResponseBody) -> Result<F, S>,
     ): Result<HttpCall.Error, S> = try {
         val response = httpClient.newCall(request).execute()
         val responseBody = response.body
@@ -87,7 +87,7 @@ class HttpCallDelegate(private val httpClient: OkHttpClient) : HttpCall {
 
     override fun <F : HttpCall.Error, S : Any> makeNullableBodyCall(
         request: Request,
-        withResponse: (response: Response) -> Result<F, S>
+        withResponse: (response: Response) -> Result<F, S>,
     ): Result<HttpCall.Error, S> = try {
         val response = httpClient.newCall(request).execute()
         val responseBody = response.body

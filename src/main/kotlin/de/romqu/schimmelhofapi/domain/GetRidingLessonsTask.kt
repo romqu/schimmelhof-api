@@ -1,9 +1,12 @@
 package de.romqu.schimmelhofapi.domain
 
-import de.romqu.schimmelhofapi.INITIAL_URL
+import de.romqu.schimmelhofapi.data.DayRepository
 import de.romqu.schimmelhofapi.data.RidingLessonRepository
+import de.romqu.schimmelhofapi.data.RidingLessonRepository.CmdWeek
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.session.SessionRepository
+import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
 import de.romqu.schimmelhofapi.shared.Result
 import de.romqu.schimmelhofapi.shared.flatMap
 import de.romqu.schimmelhofapi.shared.map
@@ -12,12 +15,13 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.springframework.stereotype.Service
 import java.io.IOException
-import java.time.OffsetDateTime
+import java.time.DayOfWeek
 
 @Service
 class GetRidingLessonsTask(
     private val ridingLessonRepository: RidingLessonRepository,
-    private val sessionRepository: SessionRepository
+    private val dayRepository: DayRepository,
+    private val sessionRepository: SessionRepository,
 ) {
 
     enum class Weekday(val rawName: String) {
@@ -42,39 +46,40 @@ class GetRidingLessonsTask(
             .parseRidingLessonTableEntries()
 
 
-    private fun getRidingLessonsBody(session: SessionEntity): Result<Error, RidingLessonRepository.GetRidingLessonsResponse> {
+    private fun getRidingLessonsBody(session: SessionEntity): Result<Error, HttpCall.Response> {
 
-        val now = OffsetDateTime.now()
+        val from = dayRepository.getFirst(DayOfWeek.MONDAY)
+        val to = dayRepository.getFirst(DayOfWeek.SUNDAY)
 
-        val from =
-            if (now.dayOfWeek == DayOfWeek.MONDAY) now else now.with(TemporalAdjusters.previous(DayOfWeek.MONDAY))
-
-        val to = from.with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
-
-        return ridingLessonRepository.getRidingLessons(session).mapError(Error.Network)
+        return ridingLessonRepository.getRidingLessons(
+            from = from,
+            to = to,
+            cmdWeek = CmdWeek.SHOW_WEEK,
+            session
+        ).mapError(Error.Network)
     }
 
-    private fun Result<Error, RidingLessonRepository.GetRidingLessonsResponse>.convertBodyToHtmlDocument()
+    private fun Result<Error, HttpCall.Response>.convertBodyToHtmlDocument()
         : Result<Error, Document> =
         flatMap { response ->
             try {
                 val htmlDocument = Jsoup.parse(
                     response.responseBody.byteStream(),
                     Charsets.UTF_8.name(),
-                    INITIAL_URL
+                    INDEX_URL.toString()
                 )
                 Result.Success(htmlDocument)
             } catch (ex: IOException) {
-                response.response.close()
+                response.responseBody.close()
                 Result.Failure(Error.ConvertBodyToHtmlDocument)
             }
         }
 
-    private fun Result<Error, Document>.parseRidingLessonTableEntries(): Result<Error, Map<Weekday, List<RidingLessonTableEntry>>> =
+    private fun Result<Error, Document>.parseRidingLessonTableEntries(): Result<Error, Map<Weekday, List<RidingLessonEntity>>> =
         map { document ->
 
             val entries = Weekday.values()
-                .scan(listOf<RidingLessonTableEntry>()) { list, weekday ->
+                .scan(listOf<RidingLessonEntity>()) { list, weekday ->
 
                     val tableForDayElement = document.body()
                         .getElementById("tbl${weekday.rawName}")
@@ -93,7 +98,7 @@ class GetRidingLessonsTask(
 
                             element.select("span:not(.ok)")
                                 .map {
-                                    val entry = RidingLessonTableEntry(
+                                    val entry = RidingLessonEntity(
                                         weekday = weekday,
                                         title = it.textNodes()[0].wholeText,
                                         time = it.textNodes()[1].wholeText,
@@ -122,7 +127,7 @@ class GetRidingLessonsTask(
 
                             element.select("span:not(.ok)")
                                 .map {
-                                    val tableEntry = RidingLessonTableEntry(
+                                    val tableEntry = RidingLessonEntity(
                                         weekday = weekday,
                                         title = it.textNodes()[0].wholeText,
                                         time = it.textNodes()[1].wholeText,
@@ -160,15 +165,15 @@ class GetRidingLessonsTask(
                 }
                 .flatten()
                 .distinct()
-                .sortedBy(RidingLessonTableEntry::time)
-                .groupBy(RidingLessonTableEntry::weekday)
+                .sortedBy(RidingLessonEntity::time)
+                .groupBy(RidingLessonEntity::weekday)
                 .toSortedMap(compareBy { it })
 
 
             entries
         }
 
-    data class RidingLessonTableEntry(
+    data class RidingLessonEntity(
         val weekday: Weekday,
         val title: String,
         val time: String,

@@ -12,7 +12,7 @@ interface HttpPostCall {
     fun createPostRequest(
         url: URL,
         addToRequestBody: String,
-        httpCallRequest: HttpCallRequest
+        httpCallRequest: HttpCallRequest,
     ): Request
 }
 
@@ -22,7 +22,7 @@ class HttpPostCallDelegate : HttpPostCall {
     override fun createPostRequest(
         url: URL,
         addToRequestBody: String,
-        httpCallRequest: HttpCallRequest
+        httpCallRequest: HttpCallRequest,
     ): Request = with(httpCallRequest) {
 
         Request.Builder()

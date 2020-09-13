@@ -8,7 +8,7 @@ import java.util.*
 @Repository
 class SessionRepository(
     private val objectMapper: ObjectMapper,
-    private val jedis: Jedis
+    private val jedis: Jedis,
 ) {
 
     fun saveOrUpdate(sessionEntity: SessionEntity): SessionEntity {

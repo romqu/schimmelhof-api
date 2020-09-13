@@ -14,7 +14,7 @@ class BookRidingLessonService(
 
     private fun bookRidingLesson(
         ridingLessonId: String,
-        currentSession: SessionEntity
+        currentSession: SessionEntity,
     ) = ridingLessonRepository.bookRidingLesson(
         ridingLessonId = ridingLessonId,
         cookieWeb = currentSession.cookieWeb,

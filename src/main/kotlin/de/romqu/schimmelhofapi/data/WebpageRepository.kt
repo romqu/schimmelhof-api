@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository
 @Repository
 class WebpageRepository(
     private val httpCallDelegate: HttpCallDelegate,
-    private val getCallDelegate: HttpGetCallDelegate
+    private val getCallDelegate: HttpGetCallDelegate,
 ) : HttpCall by httpCallDelegate, HttpGetCall by getCallDelegate {
 
     fun getHomePage(): Result<HttpCall.Error, HttpCall.Response> {
@@ -21,7 +21,7 @@ class WebpageRepository(
     }
 
     fun getIndexPage(
-        sessionEntity: SessionEntity
+        sessionEntity: SessionEntity,
     ): Result<HttpCall.Error, HttpCall.Response> {
 
         val requestData = with(sessionEntity) {

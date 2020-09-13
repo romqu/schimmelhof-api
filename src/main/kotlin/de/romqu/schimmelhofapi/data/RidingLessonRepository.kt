@@ -5,13 +5,13 @@ import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.*
 import de.romqu.schimmelhofapi.shared.Result
 import org.springframework.stereotype.Repository
-import java.time.OffsetDateTime
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Repository
 class RidingLessonRepository(
     private val httpCallDelegate: HttpCallDelegate,
-    private val postCallDelegate: HttpPostCallDelegate
+    private val postCallDelegate: HttpPostCallDelegate,
 ) : HttpCall by httpCallDelegate, HttpPostCall by postCallDelegate {
 
     enum class CmdWeek(val symbol: String, val command: String) {
@@ -20,15 +20,16 @@ class RidingLessonRepository(
         PREVIOUS_WEEK("<<", "cmdPrevWeek")
     }
 
+
     private val dayMonthYearFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-    private fun OffsetDateTime.toDayMonthYear() = format(dayMonthYearFormatter)
+    private fun LocalDate.toDayMonthYear() = format(dayMonthYearFormatter)
 
 
     fun getRidingLessons(
-        from: OffsetDateTime,
-        to: OffsetDateTime,
+        from: LocalDate,
+        to: LocalDate,
         cmdWeek: CmdWeek,
-        sessionEntity: SessionEntity
+        sessionEntity: SessionEntity,
     ): Result<HttpCall.Error, HttpCall.Response> {
 
         val requestData = with(sessionEntity) {
@@ -57,8 +58,8 @@ class RidingLessonRepository(
     }
 
     private fun buildGetRidingLessonsRequestString(
-        from: OffsetDateTime,
-        to: OffsetDateTime,
+        from: LocalDate,
+        to: LocalDate,
         cmdWeek: CmdWeek,
     ): String {
 
@@ -97,7 +98,7 @@ class RidingLessonRepository(
 
     fun cancelRidingLesson(
         ridingLessonId: String,
-        sessionEntity: SessionEntity
+        sessionEntity: SessionEntity,
     ): Result<HttpCall.Error, HttpCall.Response> {
 
         val requestData = with(sessionEntity) {

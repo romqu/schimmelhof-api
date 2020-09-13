@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse
 
 @RestController
 class LoginController(
-    private val loginService: LoginService
+    private val loginService: LoginService,
 ) {
     companion object {
         const val PATH_URL = "/api/v1/login"
@@ -19,7 +19,7 @@ class LoginController(
     @PostMapping(PATH_URL, consumes = [PROTOBUF_MEDIA_TYPE])
     fun login(
         @RequestBody loginDtoIn: LoginDtoIn,
-        httpServletResponse: HttpServletResponse
+        httpServletResponse: HttpServletResponse,
     ): LoginDtoOut = loginService.execute(
         username = loginDtoIn.username,
         passwordPlain = loginDtoIn.passwordPlain

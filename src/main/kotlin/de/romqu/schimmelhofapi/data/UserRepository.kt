@@ -12,13 +12,13 @@ import org.springframework.stereotype.Repository
 @Repository
 class UserRepository(
     private val httpCallDelegate: HttpCallDelegate,
-    private val postCallDelegate: HttpPostCallDelegate
+    private val postCallDelegate: HttpPostCallDelegate,
 ) : HttpCall by httpCallDelegate, HttpPostCall by postCallDelegate {
 
     fun login(
         username: String,
         password: String,
-        session: SessionEntity
+        session: SessionEntity,
     ): Result<HttpCall.Error, Headers> {
 
         val requestData = with(session) {

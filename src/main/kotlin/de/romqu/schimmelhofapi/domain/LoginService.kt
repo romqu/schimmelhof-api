@@ -29,8 +29,8 @@ class LoginService(
 ) {
 
     class Response(
-        val ridingLessonMap: Map<GetRidingLessonsTask.Weekday, List<GetRidingLessonsTask.RidingLessonTableEntry>>,
-        val sessionEntity: SessionEntity
+        val ridingLessonMap: Map<GetRidingLessonsTask.Weekday, List<GetRidingLessonsTask.RidingLessonEntity>>,
+        val sessionEntity: SessionEntity,
     )
 
     fun execute(username: String, passwordPlain: String): Result<Error, Response> =
@@ -109,7 +109,7 @@ class LoginService(
 
     private fun Result<Error, GetSessionValuesFromHtmlOut>.doLogin(
         userName: String,
-        passwordPlain: String
+        passwordPlain: String,
     ): Result<Error, DoLoginOut> = flatMap { out ->
 
         val session = SessionEntity(
@@ -140,7 +140,7 @@ class LoginService(
 
     class DoLoginOut(
         val session: SessionEntity,
-        val loginHeaders: Headers
+        val loginHeaders: Headers,
     )
 
     private fun Result<Error, DoLoginOut>.getSanitizedCookieWeb()
@@ -180,7 +180,7 @@ class LoginService(
 
     class GetHtmlDocumentFromIndexBodyOut(
         val session: SessionEntity,
-        val indexHtmlDocument: Document
+        val indexHtmlDocument: Document,
     )
 
     private fun Result<Error, GetHtmlDocumentFromIndexBodyOut>.getSateValuesFromIndexHtml()
