@@ -12,12 +12,8 @@ class CancelRidingLessonService(
     fun execute(currentSession: SessionEntity, ridingLessonId: String) =
         ridingLessonRepository.cancelRidingLesson(
             ridingLessonId = ridingLessonId,
-            cookieWeb = currentSession.cookieWeb,
-            cookie = currentSession.cookie,
-            viewState = currentSession.viewState,
-            viewStateGenerator = currentSession.viewStateGenerator,
-            eventValidation = currentSession.eventValidation
-        ).mapError(CouldNotCancelSessionError) { it.response.close() }
+            session = currentSession
+        ).mapError(CouldNotCancelSessionError) { it.responseBody.close() }
 
     object CouldNotCancelSessionError
 }

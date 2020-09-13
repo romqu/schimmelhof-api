@@ -17,14 +17,9 @@ class BookRidingLessonService(
         currentSession: SessionEntity,
     ) = ridingLessonRepository.bookRidingLesson(
         ridingLessonId = ridingLessonId,
-        cookieWeb = currentSession.cookieWeb,
-        cookie = currentSession.cookie,
-        viewState = currentSession.viewState,
-        viewStateGenerator = currentSession.viewStateGenerator,
-        eventValidation = currentSession.eventValidation
+        session = currentSession
     ).mapError(CouldNotBookSessionError) {
-
-        it.response.close()
+        it.responseBody.close()
     }
 
     object CouldNotBookSessionError

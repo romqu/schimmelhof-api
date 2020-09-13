@@ -76,10 +76,10 @@ class RidingLessonRepository(
 
     fun bookRidingLesson(
         ridingLessonId: String,
-        sessionEntity: SessionEntity,
+        session: SessionEntity,
     ): Result<HttpCall.Error, HttpCall.Response> {
 
-        val requestData = with(sessionEntity) {
+        val requestData = with(session) {
             HttpCallRequest(
                 cookie = cookie,
                 cookieWeb = cookieWeb,
@@ -98,10 +98,10 @@ class RidingLessonRepository(
 
     fun cancelRidingLesson(
         ridingLessonId: String,
-        sessionEntity: SessionEntity,
+        session: SessionEntity,
     ): Result<HttpCall.Error, HttpCall.Response> {
 
-        val requestData = with(sessionEntity) {
+        val requestData = with(session) {
             HttpCallRequest(
                 cookie = cookie,
                 cookieWeb = cookieWeb,
