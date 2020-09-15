@@ -1,6 +1,8 @@
 package de.romqu.schimmelhofapi.domain
 
-import de.romqu.schimmelhofapi.data.DayRepository
+import de.romqu.schimmelhofapi.data.Week
+import de.romqu.schimmelhofapi.data.WeekRepository
+import de.romqu.schimmelhofapi.data.WeekRepository.Companion.NUMBER_OF_WEEK_DAYS
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -13,7 +15,7 @@ import kotlin.concurrent.scheduleAtFixedRate
 
 @Service
 class StartupService(
-    private val dayRepository: DayRepository,
+    private val weekRepository: WeekRepository,
 ) {
 
     companion object {
@@ -23,7 +25,7 @@ class StartupService(
 
     fun execute() {
         getDaysOfThreeWeeks()
-            .saveDays()
+            .saveAsWeek()
             .scheduleAddNewWeekAfterWeekEnded()
     }
 
@@ -39,21 +41,25 @@ class StartupService(
         return (0..plusDays).map { firstMonday.plusDays(it) }
     }
 
-    fun List<LocalDate>.saveDays() = dayRepository.save(this)
-
-    private fun List<LocalDate>.scheduleAddNewWeekAfterWeekEnded() {
+    private fun List<Week>.scheduleAddNewWeekAfterWeekEnded() {
         val nextMondayAtMidnight = LocalDateTime.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY))
         val nextMondayAtMidnightDate = Date.from(nextMondayAtMidnight.atZone(ZoneId.systemDefault()).toInstant())
 
         Timer().scheduleAtFixedRate(time = nextMondayAtMidnightDate, period = WEEK_MILLIS) {
-            val lastSunday = dayRepository.getAll().lastOrNull()!!
-            val monday = lastSunday.plusDays(1)
-            val weekDays = datesOfWeekDays(monday, 1)
+            val lastSunday = weekRepository.getAll().last().days.last()
+            val nextMonday = lastSunday.plusDays(1)
+            val weekDays = datesOfWeekDays(nextMonday, 1)
 
-            dayRepository.save(weekDays)
-            dayRepository.delete(0..6)
+            weekRepository.save(weekDays.saveAsWeek())
+            weekRepository.delete(weekRepository.getAll().first())
         }
     }
+
+
+    fun List<LocalDate>.saveAsWeek(): List<Week> =
+        chunked(NUMBER_OF_WEEK_DAYS) { days ->
+            Week.of(days)
+        }.run(weekRepository::save)
 }
 
 

@@ -1,8 +1,9 @@
 package de.romqu.schimmelhofapi.domain
 
-import de.romqu.schimmelhofapi.data.DayRepository
 import de.romqu.schimmelhofapi.data.RidingLessonRepository
 import de.romqu.schimmelhofapi.data.RidingLessonRepository.CmdWeek
+import de.romqu.schimmelhofapi.data.Week
+import de.romqu.schimmelhofapi.data.WeekRepository
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.session.SessionRepository
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
@@ -20,7 +21,7 @@ import java.io.IOException
 @Service
 class GetRidingLessonsTask(
     private val ridingLessonRepository: RidingLessonRepository,
-    private val dayRepository: DayRepository,
+    private val weekRepository: WeekRepository,
     private val sessionRepository: SessionRepository,
 ) {
 
@@ -40,15 +41,17 @@ class GetRidingLessonsTask(
         WARTELISTE_STORNIEREN("Warteliste stornieren")
     }
 
-    fun execute(session: SessionEntity) =
-        getRidingLessonsBody(session)
-            .convertBodyToHtmlDocument()
-            .parseRidingLessonTableEntries()
+    fun execute(forWeeks: List<Week>, session: SessionEntity) =
+        repeat(forWeeks.size) {
+            getRidingLessonsBody(forWeeks[it - 1], session)
+                .convertBodyToHtmlDocument()
+                .parseRidingLessonTableEntries()
+        }
 
 
-    private fun getRidingLessonsBody(session: SessionEntity): Result<Error, HttpCall.Response> {
+    private fun getRidingLessonsBody(forWeek: Week, session: SessionEntity): Result<Error, HttpCall.Response> {
 
-        val week = dayRepository.getAll().subList(7, 14)
+        val week = weekRepository.getAll().subList(7, 14)
 
         val from = week.first()
         val to = week.last()
