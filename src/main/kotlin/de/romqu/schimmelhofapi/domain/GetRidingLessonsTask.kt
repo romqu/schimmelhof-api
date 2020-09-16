@@ -15,8 +15,10 @@ import de.romqu.schimmelhofapi.shared.mapError
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.jsoup.nodes.TextNode
 import org.springframework.stereotype.Service
 import java.io.IOException
+import java.time.LocalTime
 
 @Service
 class GetRidingLessonsTask(
@@ -41,12 +43,12 @@ class GetRidingLessonsTask(
         WARTELISTE_STORNIEREN("Warteliste stornieren")
     }
 
-    fun execute(forWeeks: List<Week>, session: SessionEntity): List<Result<Error, Map<Weekday, List<RidingLessonEntity>>>> =
+    fun execute(forWeeks: List<Week>, session: SessionEntity) =
         repeatForNumberOfWeeks(forWeeks) { week ->
             getRidingLessonsBody(week, session)
                 .convertBodyToHtmlDocument()
                 .parseRidingLessonTableEntries()
-        }
+        }.first()
 
 
     private fun repeatForNumberOfWeeks(
@@ -104,7 +106,7 @@ class GetRidingLessonsTask(
             }
             .flatten()
             .distinct()
-            .sortedBy(RidingLessonEntity::time)
+            .sortedBy(RidingLessonEntity::from)
             .groupBy(RidingLessonEntity::weekday)
             .toSortedMap(compareBy { it })
 
@@ -126,10 +128,15 @@ class GetRidingLessonsTask(
 
                 element.select("span:not(.ok)")
                     .map {
+
+                        val timeText = it.textNodes()[1]
+                        val (from, to) = parseFromToTimeFromTimeText(timeText)
+
                         val ridingLesson = RidingLessonEntity(
                             weekday = weekday,
                             title = it.textNodes()[0].wholeText,
-                            time = it.textNodes()[1].wholeText,
+                            from = from,
+                            to = to,
                             teacher = it.textNodes()[2].wholeText,
                             place = it.textNodes()[3].wholeText,
                             state = state,
@@ -155,10 +162,15 @@ class GetRidingLessonsTask(
 
                 element.select("span:not(.ok)")
                     .map {
+
+                        val timeText = it.textNodes()[1]
+                        val (from, to) = parseFromToTimeFromTimeText(timeText)
+
                         val tableEntry = RidingLessonEntity(
                             weekday = weekday,
                             title = it.textNodes()[0].wholeText,
-                            time = it.textNodes()[1].wholeText,
+                            from = from,
+                            to = to,
                             teacher = it.textNodes()[2].wholeText,
                             place = it.textNodes()[3].wholeText,
                         )
@@ -200,10 +212,20 @@ class GetRidingLessonsTask(
                     }
             }
 
+    private fun parseFromToTimeFromTimeText(timeText: TextNode): Pair<LocalTime, LocalTime> {
+        val fromToTimeValues = timeText.wholeText.split(" - ")
+
+
+        val from = LocalTime.parse(fromToTimeValues.first())
+        val to = LocalTime.parse(fromToTimeValues.last())
+        return Pair(from, to)
+    }
+
     data class RidingLessonEntity(
         val weekday: Weekday,
         val title: String,
-        val time: String,
+        val from: LocalTime,
+        val to: LocalTime,
         val teacher: String,
         val place: String,
         val lessonCmd: String = "",

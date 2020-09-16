@@ -4,6 +4,7 @@ package de.romqu.schimmelhofapi.domain
 import de.romqu.schimmelhofapi.SET_COOKIE_HEADER
 import de.romqu.schimmelhofapi.data.UserRepository
 import de.romqu.schimmelhofapi.data.WebpageRepository
+import de.romqu.schimmelhofapi.data.WeekRepository
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.session.SessionRepository
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
@@ -26,6 +27,7 @@ class LoginService(
     private val getStateValuesFromHtmlDocumentTask: GetStateValuesFromHtmlDocumentTask,
     private val webpageRepository: WebpageRepository,
     private val getRidingLessonsTask: GetRidingLessonsTask,
+    private val weekRepository: WeekRepository,
 ) {
 
     class Response(
@@ -200,7 +202,10 @@ class LoginService(
         map(sessionRepository::saveOrUpdate)
 
     private fun Result<Error, SessionEntity>.getRidingLessons() = flatMap { session ->
-        getRidingLessonsTask.execute(session)
+
+        val nextTwoWeeks = weekRepository.getAll().take(2)
+
+        getRidingLessonsTask.execute(nextTwoWeeks, session)
             .mapError(Error.CouldNotGetRidingLessons) {
                 Response(it, session)
             }
