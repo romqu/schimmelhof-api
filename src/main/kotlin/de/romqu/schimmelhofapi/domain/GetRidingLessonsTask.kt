@@ -41,20 +41,24 @@ class GetRidingLessonsTask(
         WARTELISTE_STORNIEREN("Warteliste stornieren")
     }
 
-    fun execute(forWeeks: List<Week>, session: SessionEntity) =
-        repeat(forWeeks.size) {
-            getRidingLessonsBody(forWeeks[it - 1], session)
+    fun execute(forWeeks: List<Week>, session: SessionEntity): List<Result<Error, Map<Weekday, List<RidingLessonEntity>>>> =
+        repeatForNumberOfWeeks(forWeeks) { week ->
+            getRidingLessonsBody(week, session)
                 .convertBodyToHtmlDocument()
                 .parseRidingLessonTableEntries()
         }
 
 
+    private fun repeatForNumberOfWeeks(
+        forWeeks: List<Week>,
+        f: (week: Week) -> Result<Error, Map<Weekday, List<RidingLessonEntity>>>,
+    ): List<Result<Error, Map<Weekday, List<RidingLessonEntity>>>> = forWeeks.map(f::invoke)
+
+
     private fun getRidingLessonsBody(forWeek: Week, session: SessionEntity): Result<Error, HttpCall.Response> {
 
-        val week = weekRepository.getAll().subList(7, 14)
-
-        val from = week.first()
-        val to = week.last()
+        val from = forWeek.days.first()
+        val to = forWeek.days.last()
 
         return ridingLessonRepository.getRidingLessons(
             from = from,
@@ -84,7 +88,7 @@ class GetRidingLessonsTask(
         : Result<Error, Map<Weekday, List<RidingLessonEntity>>> = map { document ->
 
         val entries = Weekday.values()
-            .scan(listOf<RidingLessonEntity>()) { list, weekday ->
+            .scanIndexed(listOf<RidingLessonEntity>()) { index, list, weekday ->
 
                 val todayRidingLessonsTableEntries = document.body()
                     .getElementById("tbl${weekday.rawName}")
