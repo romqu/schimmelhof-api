@@ -30,18 +30,18 @@ class LoginController(
 
     fun onSuccess(response: LoginService.Response, httpServletResponse: HttpServletResponse): LoginDtoOut {
         httpServletResponse.status = HttpStatus.OK.value()
-        val ridingLessonDayDtos = response.ridingLessonMap.map { entry ->
+        val ridingLessonDayDtos = response.ridingLessonDays.map { ridingLessonDay ->
 
-            val weekdayDto = WeekdayDto.valueOf(entry.key.name)
+            val weekdayDto = WeekdayDto.valueOf(ridingLessonDay.weekday.name)
 
             RidingLessonDayDto.newBuilder().apply {
                 weekday = weekdayDto
 
-                val ridingLessons = entry.value.map { ridingLesson ->
+                val ridingLessons = ridingLessonDay.ridingLessons.map { ridingLesson ->
                     RidingLessonDto.newBuilder().apply {
                         weekday = weekdayDto
                         title = ridingLesson.title
-                        time = ridingLesson.time
+                        time = ridingLesson.from.toString()
                         teacher = ridingLesson.teacher
                         place = ridingLesson.place
                         lessonCmd = ridingLesson.lessonCmd

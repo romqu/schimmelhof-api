@@ -113,7 +113,7 @@ class GetRidingLessonsTask(
 
                 list.union(listOf(ridingLessonDay))
                     .toList()
-            }.flatten()
+            }.flatten().distinct()
     }
 
     private fun Element.getBookableRidingLessons(weekday: Weekday, date: LocalDate): List<RidingLessonEntity> =
@@ -169,7 +169,7 @@ class GetRidingLessonsTask(
                         val timeText = it.textNodes()[1]
                         val (from, to) = parseFromToTimeFromTimeText(timeText)
 
-                        val tableEntry = RidingLessonEntity(
+                        val ridingLesson = RidingLessonEntity(
                             weekday = weekday,
                             date = date,
                             title = it.textNodes()[0].wholeText,
@@ -182,37 +182,37 @@ class GetRidingLessonsTask(
                         val isBookedByUser = element.select("span[title=gebucht]")
                             .isNotEmpty()
 
-                        val tableEntryNext = when {
+                        val ridingLessonNext = when {
                             isBookedByUser && inputValue.isEmpty() -> {
-                                tableEntry.copy(
+                                ridingLesson.copy(
                                     state = RidingLessonState.EXPIRED_BOOKED
                                 )
                             }
                             inputValue.isNotEmpty() -> {
                                 when (BookedInputValue.valueOf(inputValue.toUpperCase().replace(" ", "_"))) {
-                                    BookedInputValue.STORNIEREN -> tableEntry.copy(
+                                    BookedInputValue.STORNIEREN -> ridingLesson.copy(
                                         state = RidingLessonState.BOOKED,
                                         action = RidingLessonAction.CANCEL_BOOKING
                                     )
                                     BookedInputValue.WARTELISTE ->
-                                        tableEntry.copy(
+                                        ridingLesson.copy(
                                             state = RidingLessonState.BOOKED_OUT,
                                             action = RidingLessonAction.ON_WAIT_LIST
                                         )
-                                    BookedInputValue.WARTELISTE_STORNIEREN -> tableEntry.copy(
+                                    BookedInputValue.WARTELISTE_STORNIEREN -> ridingLesson.copy(
                                         state = RidingLessonState.WAIT_LIST,
                                         action = RidingLessonAction.CANCEL_WAIT_LIST
                                     )
                                 }
                             }
-                            else -> tableEntry
+                            else -> ridingLesson
                         }
 
                         if (inputElementIdValue.isNotEmpty()) {
                             val lessonCmd = inputElementIdValue.substringBefore("_")
                             val lessonId = inputElementIdValue.substringAfter("_")
-                            tableEntryNext.copy(lessonCmd = lessonCmd, lessonId = lessonId)
-                        } else tableEntryNext
+                            ridingLessonNext.copy(lessonCmd = lessonCmd, lessonId = lessonId)
+                        } else ridingLessonNext
                     }
             }
 
@@ -224,11 +224,6 @@ class GetRidingLessonsTask(
         val to = LocalTime.parse(fromToTimeValues.last())
         return Pair(from, to)
     }
-
-    class RidingLessonDayEntity(
-        val weekday: Weekday,
-        val date: LocalDate,
-    )
 
     data class RidingLessonEntity(
         val weekday: Weekday,

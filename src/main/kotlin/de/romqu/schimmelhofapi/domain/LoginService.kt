@@ -31,7 +31,7 @@ class LoginService(
 ) {
 
     class Response(
-        val ridingLessonMap: Map<GetRidingLessonsTask.Weekday, List<GetRidingLessonsTask.RidingLessonEntity>>,
+        val ridingLessonDays: List<RidingLessonDay>,
         val sessionEntity: SessionEntity,
     )
 
