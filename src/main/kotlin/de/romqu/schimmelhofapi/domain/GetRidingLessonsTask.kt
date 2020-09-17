@@ -18,6 +18,7 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 import org.springframework.stereotype.Service
 import java.io.IOException
+import java.time.LocalDate
 import java.time.LocalTime
 
 @Service
@@ -47,14 +48,14 @@ class GetRidingLessonsTask(
         repeatForNumberOfWeeks(forWeeks) { week ->
             getRidingLessonsBody(week, session)
                 .convertBodyToHtmlDocument()
-                .parseRidingLessonTableEntries()
+                .parseRidingLessonTableEntries(week)
         }.first()
 
 
     private fun repeatForNumberOfWeeks(
         forWeeks: List<Week>,
-        f: (week: Week) -> Result<Error, Map<Weekday, List<RidingLessonEntity>>>,
-    ): List<Result<Error, Map<Weekday, List<RidingLessonEntity>>>> = forWeeks.map(f::invoke)
+        f: (week: Week) -> Result<Error, List<RidingLessonDay>>,
+    ): List<Result<Error, List<RidingLessonDay>>> = forWeeks.map(f::invoke)
 
 
     private fun getRidingLessonsBody(forWeek: Week, session: SessionEntity): Result<Error, HttpCall.Response> {
@@ -86,35 +87,36 @@ class GetRidingLessonsTask(
             }
         }
 
-    private fun Result<Error, Document>.parseRidingLessonTableEntries()
-        : Result<Error, Map<Weekday, List<RidingLessonEntity>>> = map { document ->
+    private fun Result<Error, Document>.parseRidingLessonTableEntries(week: Week)
+        : Result<Error, List<RidingLessonDay>> = map { document ->
 
-        val entries = Weekday.values()
-            .scanIndexed(listOf<RidingLessonEntity>()) { index, list, weekday ->
+        week.days.zip(Weekday.values())
+            .scan(listOf<RidingLessonDay>()) { list, (date, weekday) ->
 
                 val todayRidingLessonsTableEntries = document.body()
                     .getElementById("tbl${weekday.rawName}")
 
                 val bookableRidingLessons = todayRidingLessonsTableEntries
-                    .getBookableRidingLessons(weekday)
+                    .getBookableRidingLessons(weekday, date)
 
                 val bookedRidingLessons = todayRidingLessonsTableEntries
-                    .getBookedRidingLessons(weekday)
+                    .getBookedRidingLessons(weekday, date)
 
+                val ridingLessonsForDay = bookableRidingLessons.union(bookedRidingLessons)
+                    .sortedBy(RidingLessonEntity::from)
 
-                list.union(bookableRidingLessons.union(bookedRidingLessons)).toList()
-            }
-            .flatten()
-            .distinct()
-            .sortedBy(RidingLessonEntity::from)
-            .groupBy(RidingLessonEntity::weekday)
-            .toSortedMap(compareBy { it })
+                val ridingLessonDay = RidingLessonDay(
+                    weekday,
+                    date,
+                    ridingLessonsForDay
+                )
 
-
-        entries
+                list.union(listOf(ridingLessonDay))
+                    .toList()
+            }.flatten()
     }
 
-    private fun Element.getBookableRidingLessons(weekday: Weekday): List<RidingLessonEntity> =
+    private fun Element.getBookableRidingLessons(weekday: Weekday, date: LocalDate): List<RidingLessonEntity> =
         select("td:not(.ausgebucht) div")
             .flatMap { element ->
 
@@ -134,6 +136,7 @@ class GetRidingLessonsTask(
 
                         val ridingLesson = RidingLessonEntity(
                             weekday = weekday,
+                            date = date,
                             title = it.textNodes()[0].wholeText,
                             from = from,
                             to = to,
@@ -152,7 +155,7 @@ class GetRidingLessonsTask(
 
             }
 
-    private fun Element.getBookedRidingLessons(weekday: Weekday): List<RidingLessonEntity> =
+    private fun Element.getBookedRidingLessons(weekday: Weekday, date: LocalDate): List<RidingLessonEntity> =
         select("td.ausgebucht div")
             .flatMap { element ->
 
@@ -168,6 +171,7 @@ class GetRidingLessonsTask(
 
                         val tableEntry = RidingLessonEntity(
                             weekday = weekday,
+                            date = date,
                             title = it.textNodes()[0].wholeText,
                             from = from,
                             to = to,
@@ -221,8 +225,14 @@ class GetRidingLessonsTask(
         return Pair(from, to)
     }
 
+    class RidingLessonDayEntity(
+        val weekday: Weekday,
+        val date: LocalDate,
+    )
+
     data class RidingLessonEntity(
         val weekday: Weekday,
+        val date: LocalDate,
         val title: String,
         val from: LocalTime,
         val to: LocalTime,
