@@ -3,7 +3,10 @@ package de.romqu.schimmelhofapi.data
 
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.shared.constant.LOGIN_URL
-import de.romqu.schimmelhofapi.data.shared.httpcall.*
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCallRequest
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpPostCall
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpPostCallDelegate
 import de.romqu.schimmelhofapi.shared.Result
 import okhttp3.Headers
 import org.springframework.http.HttpStatus
@@ -11,9 +14,8 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class UserRepository(
-    private val httpCallDelegate: HttpCallDelegate,
     private val postCallDelegate: HttpPostCallDelegate,
-) : HttpCall by httpCallDelegate, HttpPostCall by postCallDelegate {
+) : HttpPostCall by postCallDelegate {
 
     fun login(
         username: String,

@@ -3,16 +3,18 @@ package de.romqu.schimmelhofapi.data
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
 import de.romqu.schimmelhofapi.data.shared.constant.LOGIN_URL
-import de.romqu.schimmelhofapi.data.shared.httpcall.*
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCallRequest
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpGetCall
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpGetCallDelegate
 import de.romqu.schimmelhofapi.shared.Result
 import okhttp3.Request
 import org.springframework.stereotype.Repository
 
 @Repository
 class WebpageRepository(
-    private val httpCallDelegate: HttpCallDelegate,
     private val getCallDelegate: HttpGetCallDelegate,
-) : HttpCall by httpCallDelegate, HttpGetCall by getCallDelegate {
+) : HttpGetCall by getCallDelegate {
 
     fun getHomePage(): Result<HttpCall.Error, HttpCall.Response> {
         val request = Request.Builder().url(LOGIN_URL).get().build()

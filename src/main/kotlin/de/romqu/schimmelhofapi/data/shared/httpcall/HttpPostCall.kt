@@ -8,7 +8,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.stereotype.Component
 import java.net.URL
 
-interface HttpPostCall {
+interface HttpPostCall : HttpCall {
     fun createPostRequest(
         url: URL,
         addToRequestBody: String,
@@ -17,7 +17,9 @@ interface HttpPostCall {
 }
 
 @Component
-class HttpPostCallDelegate : HttpPostCall {
+class HttpPostCallDelegate(
+    private val httpCallDelegate: HttpCallDelegate,
+) : HttpPostCall, HttpCall by httpCallDelegate {
 
     override fun createPostRequest(
         url: URL,

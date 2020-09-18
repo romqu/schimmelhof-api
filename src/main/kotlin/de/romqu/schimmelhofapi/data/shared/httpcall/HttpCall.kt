@@ -23,6 +23,9 @@ interface HttpCall {
         withResponse: (response: okhttp3.Response) -> Result<F, S>,
     ): Result<Error, S>
 
+
+    fun closeConnection(body: ResponseBody)
+
     sealed class Error {
         class ResponseUnsuccessful(val statusCode: Int, val statusMessage: String) : Error()
         class CallUnsuccessful(val message: String) : Error()
@@ -99,5 +102,9 @@ class HttpCallDelegate(private val httpClient: OkHttpClient) : HttpCall {
         ))
     } catch (ex: IOException) {
         Result.Failure(HttpCall.Error.CallUnsuccessful(ex.toString()))
+    }
+
+    override fun closeConnection(body: ResponseBody) {
+        body.close()
     }
 }
