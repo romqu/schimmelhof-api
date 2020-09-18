@@ -5,7 +5,7 @@ import org.jsoup.nodes.Document
 import org.springframework.stereotype.Service
 
 @Service
-class GetStateValuesFromHtmlDocumentTask {
+class GetStateValuesTask {
 
     companion object {
         const val VIEW_STATE = "__VIEWSTATE"

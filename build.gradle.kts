@@ -1,8 +1,12 @@
-import com.google.protobuf.gradle.*
+import com.google.protobuf.gradle.generateProtoTasks
+import com.google.protobuf.gradle.ofSourceSet
+import com.google.protobuf.gradle.protobuf
+import com.google.protobuf.gradle.protoc
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.springframework.boot") version "2.4.0-SNAPSHOT"
+    // id("com.squareup.wire") version "3.3.0"
     id("io.spring.dependency-management") version "1.0.10.RELEASE"
     id("com.google.protobuf") version "0.8.13"
     kotlin("jvm") version "1.4.10"
@@ -67,16 +71,14 @@ tasks.withType<KotlinCompile> {
 }
 
 protobuf {
+
     protoc {
         artifact = "com.google.protobuf:protoc:3.13.0"
-
     }
 
     generateProtoTasks {
         ofSourceSet("main").forEach { task ->
-            task.builtins {
-
-            }
+            task.builtins {}
         }
     }
 }

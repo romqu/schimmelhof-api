@@ -1,13 +1,13 @@
-package de.romqu.schimmelhofapi.domain
+package de.romqu.schimmelhofapi.domain.ridinglesson
 
-import de.romqu.schimmelhofapi.data.RidingLessonRepository
-import de.romqu.schimmelhofapi.data.RidingLessonRepository.CmdWeek
-import de.romqu.schimmelhofapi.data.Week
-import de.romqu.schimmelhofapi.data.WeekRepository
+import de.romqu.schimmelhofapi.data.ridinglesson.*
+import de.romqu.schimmelhofapi.data.ridinglesson.RidingLessonRepository.CmdWeek
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.session.SessionRepository
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
+import de.romqu.schimmelhofapi.data.week.WeekEntity
+import de.romqu.schimmelhofapi.data.week.WeekRepository
 import de.romqu.schimmelhofapi.shared.Result
 import de.romqu.schimmelhofapi.shared.flatMap
 import de.romqu.schimmelhofapi.shared.map
@@ -44,8 +44,8 @@ class GetRidingLessonsTask(
         WARTELISTE_STORNIEREN("Warteliste stornieren")
     }
 
-    fun execute(forWeeks: List<Week>, session: SessionEntity) =
-        repeatForNumberOfWeeks(forWeeks) { week ->
+    fun execute(forWeekEntities: List<WeekEntity>, session: SessionEntity) =
+        repeatForNumberOfWeeks(forWeekEntities) { week ->
             getRidingLessonsBody(week, session)
                 .convertBodyToHtmlDocument()
                 .parseRidingLessonTableEntries(week)
@@ -53,15 +53,15 @@ class GetRidingLessonsTask(
 
 
     private fun repeatForNumberOfWeeks(
-        forWeeks: List<Week>,
-        f: (week: Week) -> Result<Error, List<RidingLessonDay>>,
-    ): List<Result<Error, List<RidingLessonDay>>> = forWeeks.map(f::invoke)
+        forWeekEntities: List<WeekEntity>,
+        f: (weekEntity: WeekEntity) -> Result<Error, List<RidingLessonDayEntity>>,
+    ): List<Result<Error, List<RidingLessonDayEntity>>> = forWeekEntities.map(f::invoke)
 
 
-    private fun getRidingLessonsBody(forWeek: Week, session: SessionEntity): Result<Error, HttpCall.Response> {
+    private fun getRidingLessonsBody(forWeekEntity: WeekEntity, session: SessionEntity): Result<Error, HttpCall.Response> {
 
-        val from = forWeek.days.first()
-        val to = forWeek.days.last()
+        val from = forWeekEntity.days.first()
+        val to = forWeekEntity.days.last()
 
         return ridingLessonRepository.getRidingLessons(
             from = from,
@@ -87,11 +87,11 @@ class GetRidingLessonsTask(
             }
         }
 
-    private fun Result<Error, Document>.parseRidingLessonTableEntries(week: Week)
-        : Result<Error, List<RidingLessonDay>> = map { document ->
+    private fun Result<Error, Document>.parseRidingLessonTableEntries(weekEntity: WeekEntity)
+        : Result<Error, List<RidingLessonDayEntity>> = map { document ->
 
-        week.days.zip(Weekday.values())
-            .scan(listOf<RidingLessonDay>()) { list, (date, weekday) ->
+        weekEntity.days.zip(Weekday.values())
+            .scan(listOf<RidingLessonDayEntity>()) { list, (date, weekday) ->
 
                 val todayRidingLessonsTableEntries = document.body()
                     .getElementById("tbl${weekday.rawName}")
@@ -105,7 +105,7 @@ class GetRidingLessonsTask(
                 val ridingLessonsForDay = bookableRidingLessons.union(bookedRidingLessons)
                     .sortedBy(RidingLessonEntity::from)
 
-                val ridingLessonDay = RidingLessonDay(
+                val ridingLessonDay = RidingLessonDayEntity(
                     weekday,
                     date,
                     ridingLessonsForDay
@@ -223,37 +223,6 @@ class GetRidingLessonsTask(
         val from = LocalTime.parse(fromToTimeValues.first())
         val to = LocalTime.parse(fromToTimeValues.last())
         return Pair(from, to)
-    }
-
-    data class RidingLessonEntity(
-        val weekday: Weekday,
-        val date: LocalDate,
-        val title: String,
-        val from: LocalTime,
-        val to: LocalTime,
-        val teacher: String,
-        val place: String,
-        val lessonCmd: String = "",
-        val lessonId: String = "",
-        val state: RidingLessonState = RidingLessonState.EXPIRED,
-        val action: RidingLessonAction = RidingLessonAction.NONE,
-    )
-
-    enum class RidingLessonState {
-        EXPIRED,
-        EXPIRED_BOOKED,
-        BOOKED_OUT,
-        WAIT_LIST,
-        BOOKED,
-        AVAILABLE,
-    }
-
-    enum class RidingLessonAction {
-        NONE,
-        BOOK,
-        ON_WAIT_LIST,
-        CANCEL_BOOKING,
-        CANCEL_WAIT_LIST
     }
 
     sealed class Error {

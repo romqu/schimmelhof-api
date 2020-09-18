@@ -1,8 +1,8 @@
 package de.romqu.schimmelhofapi.domain
 
-import de.romqu.schimmelhofapi.data.Week
-import de.romqu.schimmelhofapi.data.WeekRepository
-import de.romqu.schimmelhofapi.data.WeekRepository.Companion.NUMBER_OF_WEEK_DAYS
+import de.romqu.schimmelhofapi.data.week.WeekEntity
+import de.romqu.schimmelhofapi.data.week.WeekRepository
+import de.romqu.schimmelhofapi.data.week.WeekRepository.Companion.NUMBER_OF_WEEK_DAYS
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -41,7 +41,7 @@ class StartupService(
         return (0..plusDays).map { firstMonday.plusDays(it) }
     }
 
-    private fun List<Week>.scheduleAddNewWeekAfterWeekEnded() {
+    private fun List<WeekEntity>.scheduleAddNewWeekAfterWeekEnded() {
         val nextMondayAtMidnight = LocalDateTime.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY))
         val nextMondayAtMidnightDate = Date.from(nextMondayAtMidnight.atZone(ZoneId.systemDefault()).toInstant())
 
@@ -56,9 +56,9 @@ class StartupService(
     }
 
 
-    fun List<LocalDate>.saveAsWeek(): List<Week> =
+    fun List<LocalDate>.saveAsWeek(): List<WeekEntity> =
         chunked(NUMBER_OF_WEEK_DAYS) { days ->
-            Week.of(days)
+            WeekEntity.of(days)
         }.run(weekRepository::save)
 }
 

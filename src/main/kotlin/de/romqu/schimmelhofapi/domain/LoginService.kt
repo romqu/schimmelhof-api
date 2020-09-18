@@ -4,12 +4,14 @@ package de.romqu.schimmelhofapi.domain
 import de.romqu.schimmelhofapi.SET_COOKIE_HEADER
 import de.romqu.schimmelhofapi.data.UserRepository
 import de.romqu.schimmelhofapi.data.WebpageRepository
-import de.romqu.schimmelhofapi.data.WeekRepository
+import de.romqu.schimmelhofapi.data.ridinglesson.RidingLessonDayEntity
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.session.SessionRepository
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
 import de.romqu.schimmelhofapi.data.shared.constant.INITIAL_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
+import de.romqu.schimmelhofapi.data.week.WeekRepository
+import de.romqu.schimmelhofapi.domain.ridinglesson.GetRidingLessonsTask
 import de.romqu.schimmelhofapi.shared.*
 import okhttp3.Headers
 import okhttp3.ResponseBody
@@ -24,14 +26,14 @@ import java.net.URL
 class LoginService(
     private val userRepository: UserRepository,
     private val sessionRepository: SessionRepository,
-    private val getStateValuesFromHtmlDocumentTask: GetStateValuesFromHtmlDocumentTask,
+    private val getStateValuesTask: GetStateValuesTask,
     private val webpageRepository: WebpageRepository,
     private val getRidingLessonsTask: GetRidingLessonsTask,
     private val weekRepository: WeekRepository,
 ) {
 
     class Response(
-        val ridingLessonDays: List<RidingLessonDay>,
+        val ridingLessonDayEntities: List<RidingLessonDayEntity>,
         val sessionEntity: SessionEntity,
     )
 
@@ -91,7 +93,7 @@ class LoginService(
     private fun Result<Error, GetHtmlDocumentFromBodyOut>.getStateValuesFromInitialHtml()
         : Result<Error, GetSessionValuesFromHtmlOut> =
         flatMap { out ->
-            getStateValuesFromHtmlDocumentTask.execute(out.htmlDocument)
+            getStateValuesTask.execute(out.htmlDocument)
                 .mapError(Error.CouldNotParseSessionValuesFromInitialHtml) { taskOut ->
                     GetSessionValuesFromHtmlOut(
                         sanitizedCookie = out.sanitizedCookie,
@@ -188,7 +190,7 @@ class LoginService(
     private fun Result<Error, GetHtmlDocumentFromIndexBodyOut>.getSateValuesFromIndexHtml()
         : Result<Error, SessionEntity> =
         flatMap { out ->
-            getStateValuesFromHtmlDocumentTask.execute(out.indexHtmlDocument)
+            getStateValuesTask.execute(out.indexHtmlDocument)
                 .mapError(Error.CouldNotParseSessionValuesFromIndextHtml) { stateValuesOut ->
                     out.session.copy(
                         viewState = stateValuesOut.viewState,

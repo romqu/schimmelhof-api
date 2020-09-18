@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package entrypoint;
+
+option java_package = "de.romqu.schimmelhofapi.entrypoint";
+option java_multiple_files = true;
+
+
+message LocalTimDto {
+  int32 hours = 1;
+  int32 minutes = 2;
+}

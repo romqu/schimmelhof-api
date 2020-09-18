@@ -1,4 +1,4 @@
-package de.romqu.schimmelhofapi.data
+package de.romqu.schimmelhofapi.data.ridinglesson
 
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
