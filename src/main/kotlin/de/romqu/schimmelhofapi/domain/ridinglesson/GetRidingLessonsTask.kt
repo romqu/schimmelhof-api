@@ -47,7 +47,7 @@ class GetRidingLessonsTask(
     fun execute(
         forWeekEntities: List<WeekEntity>,
         session: SessionEntity,
-    ): List<Result<Error, List<RidingLessonDayEntity>>> =
+    ): Result<Error, List<RidingLessonDayEntity>> =
         repeatForNumberOfWeeks(forWeekEntities) { week ->
             getRidingLessonsBody(week, session)
                 .convertBodyToHtmlDocument()
@@ -55,9 +55,8 @@ class GetRidingLessonsTask(
         }.mergeRidingLessonDayLists()
 
     private fun List<Result<Error, List<RidingLessonDayEntity>>>.mergeRidingLessonDayLists()
-        : List<Result<Error, List<RidingLessonDayEntity>>> =
-        scan(Result.Success(listOf<RidingLessonDayEntity>()) as Result<Error, List<RidingLessonDayEntity>>)
-        { acc: Result<Error, List<RidingLessonDayEntity>>, result: Result<Error, List<RidingLessonDayEntity>> ->
+        : Result<Error, List<RidingLessonDayEntity>> =
+        reduce { acc, result ->
             acc.flatMap { outerList ->
                 result.map { innerList ->
                     outerList.union(innerList).toList()

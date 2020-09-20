@@ -41,7 +41,6 @@ class LoginController(
                     RidingLessonDto.newBuilder().apply {
                         weekday = weekdayDto
                         title = ridingLesson.title
-                        time = ridingLesson.from.toString()
                         teacher = ridingLesson.teacher
                         place = ridingLesson.place
                         lessonCmd = ridingLesson.lessonCmd

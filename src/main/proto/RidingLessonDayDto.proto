@@ -7,8 +7,10 @@ option java_multiple_files = true;
 
 import "WeekdayDto.proto";
 import "RidingLessonDto.proto";
+import "LocalDateDto.proto";
 
 message RidingLessonDayDto {
   WeekdayDto weekday = 1;
-  repeated RidingLessonDto ridingLessons = 2;
+  LocalDateDto date = 2;
+  repeated RidingLessonDto ridingLessons = 3;
 }

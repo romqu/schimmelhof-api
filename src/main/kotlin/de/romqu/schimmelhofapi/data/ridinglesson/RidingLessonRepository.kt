@@ -2,7 +2,10 @@ package de.romqu.schimmelhofapi.data.ridinglesson
 
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
-import de.romqu.schimmelhofapi.data.shared.httpcall.*
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCallRequest
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpPostCall
+import de.romqu.schimmelhofapi.data.shared.httpcall.HttpPostCallDelegate
 import de.romqu.schimmelhofapi.shared.Result
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
@@ -10,9 +13,8 @@ import java.time.format.DateTimeFormatter
 
 @Repository
 class RidingLessonRepository(
-    private val httpCallDelegate: HttpCallDelegate,
     private val postCallDelegate: HttpPostCallDelegate,
-) : HttpCall by httpCallDelegate, HttpPostCall by postCallDelegate {
+) : HttpPostCall by postCallDelegate {
 
     enum class CmdWeek(val symbol: String, val command: String) {
         SHOW_WEEK("anzeigen", "cmdSearch"),
