@@ -30,6 +30,10 @@ class LoginController(
 
     fun onSuccess(response: LoginService.Response, httpServletResponse: HttpServletResponse): LoginDtoOut {
         httpServletResponse.status = HttpStatus.OK.value()
+        return buildDto(response)
+    }
+
+    private fun buildDto(response: LoginService.Response): LoginDtoOut {
         val ridingLessonDayDtos = response.ridingLessonDayEntities.map { ridingLessonDay ->
 
             val weekdayDto = WeekdayDto.valueOf(ridingLessonDay.weekday.name)
