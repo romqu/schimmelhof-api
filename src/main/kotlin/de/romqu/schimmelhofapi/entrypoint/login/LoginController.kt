@@ -1,13 +1,12 @@
 package de.romqu.schimmelhofapi.entrypoint.login
 
 import de.romqu.schimmelhofapi.domain.LoginService
-import de.romqu.schimmelhofapi.entrypoint.RidingLessonDayDto
-import de.romqu.schimmelhofapi.entrypoint.RidingLessonDto
-import de.romqu.schimmelhofapi.entrypoint.WeekdayDto
+import de.romqu.schimmelhofapi.entrypoint.*
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalTime
 import javax.servlet.http.HttpServletResponse
 
 @RestController
@@ -37,13 +36,29 @@ class LoginController(
         val ridingLessonDayDtos = response.ridingLessonDayEntities.map { ridingLessonDay ->
 
             val weekdayDto = WeekdayDto.valueOf(ridingLessonDay.weekday.name)
+            val dateDto = LocalDateDto.newBuilder().apply {
+                day = ridingLessonDay.date.dayOfMonth
+                month = ridingLessonDay.date.monthValue
+                year = ridingLessonDay.date.year
+            }.build()
+
 
             RidingLessonDayDto.newBuilder().apply {
+
                 weekday = weekdayDto
+                date = dateDto
 
                 val ridingLessons = ridingLessonDay.ridingLessons.map { ridingLesson ->
+
+                    val fromDto = buildLocalTime(ridingLesson.from)
+
+                    val toDto = buildLocalTime(ridingLesson.to)
+
                     RidingLessonDto.newBuilder().apply {
+                        date = dateDto
                         weekday = weekdayDto
+                        from = fromDto
+                        to = toDto
                         title = ridingLesson.title
                         teacher = ridingLesson.teacher
                         place = ridingLesson.place
@@ -60,6 +75,12 @@ class LoginController(
         }
         return LoginDtoOut.newBuilder().addAllRidingLessonDay(ridingLessonDayDtos).build()
     }
+
+    private fun buildLocalTime(to: LocalTime): LocalTimeDto =
+        LocalTimeDto.newBuilder().apply {
+            hours = to.hour
+            minutes = to.minute
+        }.build()
 
     fun onFailure(error: LoginService.Error, httpServletResponse: HttpServletResponse): LoginDtoOut {
         httpServletResponse.status = HttpStatus.BAD_REQUEST.value()
