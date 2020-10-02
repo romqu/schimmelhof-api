@@ -1,6 +1,7 @@
 package de.romqu.schimmelhofapi.data.session
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import de.romqu.schimmelhofapi.shared.Result
 import org.springframework.stereotype.Repository
 import redis.clients.jedis.Jedis
 import java.util.*
@@ -19,11 +20,19 @@ class SessionRepository(
         return sessionEntity
     }
 
-    fun getBy(uuid: UUID): SessionEntity {
-        val sessionJson = jedis.get(uuid.toString())
+    fun getBy(uuid: UUID): Result<SessionDoesNotExistError, SessionEntity> {
+        val sessionJson: String? = jedis.get(uuid.toString())
 
-        return objectMapper.readValue(sessionJson, SessionEntity::class.java)
+        return if (sessionJson != null) {
+            val session = objectMapper.readValue(sessionJson, SessionEntity::class.java)
+
+            Result.Success(session)
+        } else {
+            Result.Failure(SessionDoesNotExistError)
+        }
     }
+
+    object SessionDoesNotExistError
 }
 
 

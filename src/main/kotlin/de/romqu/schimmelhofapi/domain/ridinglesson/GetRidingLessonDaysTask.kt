@@ -3,11 +3,9 @@ package de.romqu.schimmelhofapi.domain.ridinglesson
 import de.romqu.schimmelhofapi.data.ridinglesson.*
 import de.romqu.schimmelhofapi.data.ridinglesson.RidingLessonRepository.CmdWeek
 import de.romqu.schimmelhofapi.data.session.SessionEntity
-import de.romqu.schimmelhofapi.data.session.SessionRepository
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
 import de.romqu.schimmelhofapi.data.week.WeekEntity
-import de.romqu.schimmelhofapi.data.week.WeekRepository
 import de.romqu.schimmelhofapi.shared.Result
 import de.romqu.schimmelhofapi.shared.flatMap
 import de.romqu.schimmelhofapi.shared.map
@@ -22,10 +20,8 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 @Service
-class GetRidingLessonsTask(
+class GetRidingLessonDaysTask(
     private val ridingLessonRepository: RidingLessonRepository,
-    private val weekRepository: WeekRepository,
-    private val sessionRepository: SessionRepository,
 ) {
 
     enum class Weekday(val rawName: String) {

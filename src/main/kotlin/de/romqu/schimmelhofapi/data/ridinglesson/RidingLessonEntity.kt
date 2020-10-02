@@ -1,12 +1,12 @@
 package de.romqu.schimmelhofapi.data.ridinglesson
 
-import de.romqu.schimmelhofapi.domain.ridinglesson.GetRidingLessonsTask
+import de.romqu.schimmelhofapi.domain.ridinglesson.GetRidingLessonDaysTask
 import java.time.LocalDate
 import java.time.LocalTime
 
 
 data class RidingLessonEntity(
-    val weekday: GetRidingLessonsTask.Weekday,
+    val weekday: GetRidingLessonDaysTask.Weekday,
     val date: LocalDate,
     val title: String,
     val from: LocalTime,

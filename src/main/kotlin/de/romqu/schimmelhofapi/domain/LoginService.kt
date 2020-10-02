@@ -4,14 +4,13 @@ package de.romqu.schimmelhofapi.domain
 import de.romqu.schimmelhofapi.SET_COOKIE_HEADER
 import de.romqu.schimmelhofapi.data.UserRepository
 import de.romqu.schimmelhofapi.data.WebpageRepository
-import de.romqu.schimmelhofapi.data.ridinglesson.RidingLessonDayEntity
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.session.SessionRepository
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
 import de.romqu.schimmelhofapi.data.shared.constant.INITIAL_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
 import de.romqu.schimmelhofapi.data.week.WeekRepository
-import de.romqu.schimmelhofapi.domain.ridinglesson.GetRidingLessonsTask
+import de.romqu.schimmelhofapi.domain.ridinglesson.GetRidingLessonDaysTask
 import de.romqu.schimmelhofapi.shared.*
 import okhttp3.Headers
 import okhttp3.ResponseBody
@@ -28,16 +27,11 @@ class LoginService(
     private val sessionRepository: SessionRepository,
     private val getStateValuesTask: GetStateValuesTask,
     private val webpageRepository: WebpageRepository,
-    private val getRidingLessonsTask: GetRidingLessonsTask,
+    private val getRidingLessonDaysTask: GetRidingLessonDaysTask,
     private val weekRepository: WeekRepository,
 ) {
 
-    class Response(
-        val ridingLessonDayEntities: List<RidingLessonDayEntity>,
-        val sessionEntity: SessionEntity,
-    )
-
-    fun execute(username: String, passwordPlain: String): Result<Error, Response> =
+    fun execute(username: String, passwordPlain: String): Result<Error, SessionEntity> =
         webpageRepository.getHomePage()
             .getInitialSanitizedCookie()
             .getHtmlDocumentFromBody()
@@ -47,7 +41,6 @@ class LoginService(
             .getHtmlDocumentFromIndexBody()
             .getSateValuesFromIndexHtml()
             .saveSession()
-            .getRidingLessons()
 
     private fun Result<HttpCall.Error, HttpCall.Response>.getInitialSanitizedCookie()
         : Result<Error, GetInitialSanitizedCookieOut> =
@@ -201,16 +194,6 @@ class LoginService(
 
     private fun Result<Error, SessionEntity>.saveSession(): Result<Error, SessionEntity> =
         map(sessionRepository::saveOrUpdate)
-
-    private fun Result<Error, SessionEntity>.getRidingLessons() = flatMap { session ->
-
-        val nextTwoWeeks = weekRepository.getAll().take(2)
-
-        getRidingLessonsTask.execute(nextTwoWeeks, session)
-            .mapError(Error.CouldNotGetRidingLessons) {
-                Response(it, session)
-            }
-    }
 
     private fun ResponseBody.convertToDocument(url: URL) = Jsoup.parse(
         byteStream(),

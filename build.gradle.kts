@@ -15,6 +15,7 @@ plugins {
 buildscript {
     dependencies {
         classpath("com.google.protobuf:protobuf-gradle-plugin:0.8.13")
+        classpath("com.squareup.wire:wire-gradle-plugin:3.3.0")
     }
 }
 
