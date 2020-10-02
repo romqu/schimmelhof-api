@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package entrypoint.login;
+
+option java_package = "de.romqu.schimmelhofapi.entrypoint.login";
+option java_multiple_files = true;
+
+import "RidingLessonDayDto.proto";
+
+message GetRidingLessonDaysOutDto {
+  string errorMessage = 1;
+  repeated RidingLessonDayDto ridingLessonDayDtos = 2;
+
+}

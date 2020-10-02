@@ -3,7 +3,7 @@ package de.romqu.schimmelhofapi.entrypoint.getridinglessondays
 import de.romqu.schimmelhofapi.data.ridinglesson.RidingLessonDayEntity
 import de.romqu.schimmelhofapi.domain.ridinglesson.GetRidingLessonDaysService
 import de.romqu.schimmelhofapi.entrypoint.*
-import de.romqu.schimmelhofapi.entrypoint.login.LoginDtoOut
+import de.romqu.schimmelhofapi.entrypoint.login.GetRidingLessonDaysOutDto
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestHeader
@@ -26,18 +26,18 @@ class GetRidingLessonsDaysController(
     fun getRidingLessonDays(
         @RequestHeader("Authorization") tokenValue: String,
         httpServletResponse: HttpServletResponse,
-    ): LoginDtoOut = getRidingLessonDaysService.execute(UUID.fromString(tokenValue))
+    ): GetRidingLessonDaysOutDto = getRidingLessonDaysService.execute(UUID.fromString(tokenValue))
         .doOn({ onSuccess(it, httpServletResponse) }, { onFailure(it, httpServletResponse) })
 
     fun onSuccess(
         ridingLessonDays: List<RidingLessonDayEntity>,
         httpServletResponse: HttpServletResponse,
-    ): LoginDtoOut {
+    ): GetRidingLessonDaysOutDto {
         httpServletResponse.status = HttpStatus.OK.value()
         return buildDto(ridingLessonDays)
     }
 
-    private fun buildDto(ridingLessonDays: List<RidingLessonDayEntity>): LoginDtoOut {
+    private fun buildDto(ridingLessonDays: List<RidingLessonDayEntity>): GetRidingLessonDaysOutDto {
         val ridingLessonDayDtos = ridingLessonDays.map { ridingLessonDay ->
 
             val weekdayDto = WeekdayDto.valueOf(ridingLessonDay.weekday.name)
@@ -78,7 +78,8 @@ class GetRidingLessonsDaysController(
             }.build()
 
         }
-        return LoginDtoOut.newBuilder().addAllRidingLessonDay(ridingLessonDayDtos).build()
+        return GetRidingLessonDaysOutDto.newBuilder()
+            .addAllRidingLessonDayDtos(ridingLessonDayDtos).build()
     }
 
     private fun buildLocalTime(to: LocalTime): LocalTimeDto =
@@ -87,8 +88,11 @@ class GetRidingLessonsDaysController(
             minutes = to.minute
         }.build()
 
-    fun onFailure(error: GetRidingLessonDaysService.Error, httpServletResponse: HttpServletResponse): LoginDtoOut {
+    fun onFailure(
+        error: GetRidingLessonDaysService.Error,
+        httpServletResponse: HttpServletResponse,
+    ): GetRidingLessonDaysOutDto {
         httpServletResponse.status = HttpStatus.BAD_REQUEST.value()
-        return LoginDtoOut.newBuilder().setErrorMessage(error.toString()).build()
+        return GetRidingLessonDaysOutDto.newBuilder().setErrorMessage(error.toString()).build()
     }
 }
