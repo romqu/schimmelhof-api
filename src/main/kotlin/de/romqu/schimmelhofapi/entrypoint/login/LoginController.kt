@@ -13,7 +13,7 @@ class LoginController(
     private val loginService: LoginService,
 ) {
     companion object {
-        const val PATH_URL = "/api/v1/login"
+        const val PATH_URL = "/api/v1/users/login"
         const val PROTOBUF_MEDIA_TYPE = "application/x-protobuf"
     }
 
@@ -35,6 +35,5 @@ class LoginController(
     fun onFailure(error: LoginService.Error, httpServletResponse: HttpServletResponse): LoginDtoOut {
         httpServletResponse.status = HttpStatus.BAD_REQUEST.value()
         return LoginDtoOut.newBuilder().setErrorMessage(error.toString()).build()
-
     }
 }

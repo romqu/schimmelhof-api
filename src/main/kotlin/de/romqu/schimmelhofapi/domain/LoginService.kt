@@ -159,7 +159,7 @@ class LoginService(
             webpageRepository.getIndexPage(session)
                 .doOnResult({ httpResponse ->
                     val indexHtmlDocument = httpResponse.responseBody.convertToDocument(INDEX_URL)
-
+                    webpageRepository.closeConnection(httpResponse.responseBody)
                     GetHtmlDocumentFromIndexBodyOut(
                         session = session,
                         indexHtmlDocument = indexHtmlDocument

@@ -78,6 +78,7 @@ class HttpCallDelegate(private val httpClient: OkHttpClient) : HttpCall {
             val response = httpClient.newCall(request).execute()
 
             if (response.isSuccessful) {
+                response.close()
                 Result.Success(response.headers)
             } else {
                 Result.Failure(HttpCall.Error.ResponseUnsuccessful(response.code, response.message))
@@ -95,11 +96,14 @@ class HttpCallDelegate(private val httpClient: OkHttpClient) : HttpCall {
         val response = httpClient.newCall(request).execute()
         val responseBody = response.body
         if (responseBody != null) {
+            response.close()
             withResponse(response)
-        } else Result.Failure(HttpCall.Error.ResponseUnsuccessful(
-            response.code,
-            response.message
-        ))
+        } else {
+            Result.Failure(HttpCall.Error.ResponseUnsuccessful(
+                response.code,
+                response.message
+            ))
+        }
     } catch (ex: IOException) {
         Result.Failure(HttpCall.Error.CallUnsuccessful(ex.toString()))
     }
