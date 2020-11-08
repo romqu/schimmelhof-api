@@ -92,6 +92,9 @@ class GetRidingLessonDaysTask(
                     Charsets.UTF_8.name(),
                     INDEX_URL.toString()
                 )
+
+                ridingLessonRepository.closeConnection(response.responseBody)
+
                 Result.Success(htmlDocument)
             } catch (ex: IOException) {
                 ridingLessonRepository.closeConnection(response.responseBody)

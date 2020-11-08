@@ -1,5 +1,6 @@
 package de.romqu.schimmelhofapi
 
+import de.romqu.schimmelhofapi.entrypoint.getridinglessondays.GetRidingLessonsDaysController
 import de.romqu.schimmelhofapi.entrypoint.login.LoginController
 import de.romqu.schimmelhofapi.entrypoint.login.LoginDtoIn
 import de.romqu.schimmelhofapi.entrypoint.login.LoginDtoOut
@@ -26,6 +27,8 @@ class LoginControllerTest {
     @Autowired
     lateinit var mockMvc: MockMvc
 
+    var token: String? = null
+
     @Test
     fun test() {
 
@@ -34,17 +37,33 @@ class LoginControllerTest {
             passwordPlain = "J6WVh6ZHv7msMfMZLLWCSHzJMC6wkZeuqRWNis2WZBnhmvx5eskTN92"
         }.build()
 
-        val bytes = mockMvc.perform(
+        val response = mockMvc.perform(
             MockMvcRequestBuilders.post(LoginController.PATH_URL)
                 .contentType(LoginController.PROTOBUF_MEDIA_TYPE)
                 .content(loginDtoIn.toByteArray())
         ).andExpect(status().isOk)
             .andReturn()
             .response
-            .contentAsByteArray
 
-        val loginDtoOut = LoginDtoOut.parseFrom(bytes)
+
+        val loginDtoOut = LoginDtoOut.parseFrom(response.contentAsByteArray)
+
+        token = response.getHeader("Authorization")
 
         assertThat(loginDtoOut).isNotNull
     }
+
+    @Test
+    fun test1() {
+
+        val response = mockMvc.perform(
+            MockMvcRequestBuilders.get(GetRidingLessonsDaysController.PATH_URL)
+                .header("Authorization", token)
+        ).andExpect(status().isOk)
+            .andReturn()
+            .response
+
+
+    }
+
 }

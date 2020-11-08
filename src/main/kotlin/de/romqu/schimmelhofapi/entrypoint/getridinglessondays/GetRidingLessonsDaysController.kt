@@ -5,7 +5,7 @@ import de.romqu.schimmelhofapi.domain.ridinglesson.GetRidingLessonDaysService
 import de.romqu.schimmelhofapi.entrypoint.*
 import de.romqu.schimmelhofapi.entrypoint.login.GetRidingLessonDaysOutDto
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalTime
@@ -22,7 +22,7 @@ class GetRidingLessonsDaysController(
         const val PROTOBUF_MEDIA_TYPE = "application/x-protobuf"
     }
 
-    @PostMapping(PATH_URL, consumes = [PROTOBUF_MEDIA_TYPE])
+    @GetMapping(PATH_URL, produces = [PROTOBUF_MEDIA_TYPE])
     fun getRidingLessonDays(
         @RequestHeader("Authorization") tokenValue: String,
         httpServletResponse: HttpServletResponse,
