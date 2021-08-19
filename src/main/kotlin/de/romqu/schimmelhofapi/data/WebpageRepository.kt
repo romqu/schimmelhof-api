@@ -2,7 +2,7 @@ package de.romqu.schimmelhofapi.data
 
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
-import de.romqu.schimmelhofapi.data.shared.constant.LOGIN_URL
+import de.romqu.schimmelhofapi.data.shared.constant.INITIAL_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCallRequest
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpGetCall
@@ -17,7 +17,7 @@ class WebpageRepository(
 ) : HttpGetCall by getCallDelegate {
 
     fun getHomePage(): Result<HttpCall.Error, HttpCall.Response> {
-        val request = Request.Builder().url(LOGIN_URL).get().build()
+        val request = Request.Builder().url(INITIAL_URL).get().build()
 
         return makeCall(request)
     }

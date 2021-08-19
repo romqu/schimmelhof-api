@@ -126,6 +126,7 @@ class LoginService(
             )
         }, { error ->
             when (error) {
+
                 is HttpCall.Error.ResponseUnsuccessful ->
                     Error.Network(statusCode = error.statusCode)
                 is HttpCall.Error.CallUnsuccessful ->
@@ -204,13 +205,9 @@ class LoginService(
     sealed class Error {
         data class Network(val message: String = "", val statusCode: Int = -1) : Error()
         object CookieDoesNotExist : Error()
-        object CookieCouldNotBeSanitized : Error()
         object CouldNotParseResponseBody : Error()
         object CouldNotParseSessionValuesFromInitialHtml : Error()
         object CookieWebDoesNotExist : Error()
-        object CookieWebCouldNotBeSanitized : Error()
-        object CouldNotParseIndexResponseBody : Error()
         object CouldNotParseSessionValuesFromIndextHtml : Error()
-        object CouldNotGetRidingLessons : Error()
     }
 }

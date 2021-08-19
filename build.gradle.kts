@@ -5,17 +5,16 @@ import com.google.protobuf.gradle.protoc
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.4.0-SNAPSHOT"
-    id("io.spring.dependency-management") version "1.0.10.RELEASE"
+    id("org.springframework.boot") version "2.6.0-SNAPSHOT"
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("com.google.protobuf") version "0.8.13"
-    kotlin("jvm") version "1.4.10"
-    kotlin("plugin.spring") version "1.4.10"
+    kotlin("jvm") version "1.5.21"
+    kotlin("plugin.spring") version "1.5.21"
 }
 
 buildscript {
     dependencies {
         classpath("com.google.protobuf:protobuf-gradle-plugin:0.8.13")
-        classpath("com.squareup.wire:wire-gradle-plugin:3.3.0")
     }
 }
 
@@ -50,12 +49,12 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-    implementation("redis.clients:jedis:3.3.0")
-    implementation("com.squareup.okhttp3:okhttp:4.9.0")
-    implementation("org.jsoup:jsoup:1.13.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
+    implementation("redis.clients:jedis:3.6.3")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    implementation("org.jsoup:jsoup:1.14.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
 
-    implementation("com.google.protobuf:protobuf-java:3.13.0")
+    implementation("com.google.protobuf:protobuf-java:3.17.3")
 }
 
 tasks.withType<Test> {
@@ -65,7 +64,7 @@ tasks.withType<Test> {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "14"
+        jvmTarget = "16"
     }
     dependsOn("generateProto")
 }
@@ -73,7 +72,7 @@ tasks.withType<KotlinCompile> {
 protobuf {
 
     protoc {
-        artifact = "com.google.protobuf:protoc:3.13.0"
+        artifact = "com.google.protobuf:protoc:3.17.3"
     }
 
     generateProtoTasks {

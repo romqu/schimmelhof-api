@@ -30,7 +30,7 @@ class OkhttpConfig {
         val sslSocketFactory = sslContext.socketFactory
 
         return OkHttpClient.Builder()
-            //.proxy(Proxy(Proxy.Type.HTTP, InetSocketAddress(8881)))
+            //.proxy(Proxy(Proxy.Type.HTTP, InetSocketAddress(8081)))
             .followRedirects(false)
             .followSslRedirects(false)
             .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)

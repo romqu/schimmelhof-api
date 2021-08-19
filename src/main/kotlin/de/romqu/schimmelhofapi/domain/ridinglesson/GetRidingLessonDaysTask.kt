@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service
 import java.io.IOException
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.*
 
 @Service
 class GetRidingLessonDaysTask(
@@ -106,7 +107,7 @@ class GetRidingLessonDaysTask(
             .scan(listOf<RidingLessonDayEntity>()) { list, (date, weekday) ->
 
                 val todayRidingLessonsTableEntries = document.body()
-                    .getElementById("tbl${weekday.rawName}")
+                    .getElementById("tbl${weekday.rawName}") ?: return@scan list
 
                 val bookableRidingLessons = todayRidingLessonsTableEntries
                     .getBookableRidingLessons(weekday, date)
@@ -205,7 +206,9 @@ class GetRidingLessonDaysTask(
                             )
                         }
                         inputValue.isNotEmpty() -> {
-                            when (BookedInputValue.valueOf(inputValue.toUpperCase().replace(" ", "_"))) {
+                            when (BookedInputValue.valueOf(
+                                inputValue.uppercase(Locale.getDefault()).replace(" ", "_")
+                            )) {
                                 BookedInputValue.STORNIEREN -> ridingLesson.copy(
                                     state = RidingLessonState.BOOKED,
                                     action = RidingLessonAction.CANCEL_BOOKING

@@ -41,7 +41,7 @@ class RidingLessonRepository(
                 viewState = viewState,
                 viewStateGenerator = viewStateGenerator,
                 eventValidation = eventValidation,
-                eventTarget = CmdWeek.SHOW_WEEK.command
+                eventTarget = ""
             )
         }
 
@@ -69,7 +69,8 @@ class RidingLessonRepository(
         val toDateFormatted = to.toDayMonthYear()
 
         return "&rbList=Alle" +
-            "&txtVon=$fromDateFormatted" +
+                "&__EVENTTARGET=cmdSearch" +
+                "&txtVon=$fromDateFormatted" +
             "&txtBis=$toDateFormatted" +
             "&${cmdWeek.command}=${cmdWeek.symbol}" +
             "&typ=Reitstd" +

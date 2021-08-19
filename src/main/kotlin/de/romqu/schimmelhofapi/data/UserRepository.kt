@@ -35,7 +35,7 @@ class UserRepository(
 
         val request = createPostRequest(
             url = LOGIN_URL,
-            addToRequestBody = "&login1%3AUserName=$username&login1%3APassword=$password&login1%3ALoginButton=Anmelden",
+            addToRequestBody = "&login1%24UserName=$username&login1%24Password=$password&login1%24LoginButton=Anmelden",
             httpCallRequest = requestData
         )
 

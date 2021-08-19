@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletResponse
 
+const val BEARER = "BEARER"
+
 @RestController
 class LoginController(
     private val loginService: LoginService,
@@ -28,7 +30,7 @@ class LoginController(
 
     fun onSuccess(session: SessionEntity, httpServletResponse: HttpServletResponse): LoginDtoOut {
         httpServletResponse.status = HttpStatus.OK.value()
-        httpServletResponse.addHeader("Authorization", session.uuid.toString())
+        httpServletResponse.addHeader("Authorization", "$BEARER ${session.uuid}")
         return LoginDtoOut.getDefaultInstance()
     }
 

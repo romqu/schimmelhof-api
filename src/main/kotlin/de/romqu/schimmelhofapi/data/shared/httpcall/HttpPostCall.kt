@@ -32,13 +32,13 @@ class HttpPostCallDelegate(
             .addHeader(COOKIE_HEADER, """$cookie; $cookieWeb""")
             .addHeader(HEADER_CONTENT_TYPE, MIME_X_WWW_FORM_URLENCODED)
             .post(
-                ("$REQUEST_EVENT_TARGET_KEY$eventTarget" +
-                    "$REQUEST_EVENT_ARGUMENT_KEY$eventArgument" +
-                    REQUEST_LAST_FOCUS_KEY +
-                    "$REQUEST_VIEW_STATE_KEY$viewState" +
-                    "$REQUEST_VIEW_STATE_GENERATOR_KEY$viewStateGenerator" +
-                    "$REQUEST_EVENT_VALIDATION_KEY$eventValidationEncoded" +
-                    addToRequestBody)
+                (REQUEST_EVENT_TARGET_KEY +
+                        "$REQUEST_EVENT_ARGUMENT_KEY$eventArgument" +
+                        // REQUEST_LAST_FOCUS_KEY +
+                        "$REQUEST_VIEW_STATE_KEY$viewState" +
+                        "$REQUEST_VIEW_STATE_GENERATOR_KEY$viewStateGenerator" +
+                        "$REQUEST_EVENT_VALIDATION_KEY$eventValidationEncoded" +
+                        addToRequestBody)
                     .toRequestBody(MIME_X_WWW_FORM_URLENCODED.toMediaType())
             ).build()
     }

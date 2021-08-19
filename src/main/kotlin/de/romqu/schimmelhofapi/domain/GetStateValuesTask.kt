@@ -33,10 +33,9 @@ class GetStateValuesTask {
         val sessionValuesMap = sessionValueKeys.mapValues { entry: Map.Entry<String, String> ->
             val element = htmlDocument.getElementById(entry.key)
 
-            if (element == null) return@getStateValuesFromHtml Result.Failure(
+            element?.run { `val`() } ?: return@getStateValuesFromHtml Result.Failure(
                 CouldNotParseStateValuesFromHtmlDocumentError
             )
-            else element.`val`()
         }
 
         return Result.Success(
