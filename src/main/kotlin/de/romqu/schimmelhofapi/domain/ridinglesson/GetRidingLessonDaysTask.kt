@@ -52,7 +52,7 @@ class GetRidingLessonDaysTask(
         }.mergeRidingLessonDayLists()
 
     private fun List<Result<Error, List<RidingLessonDayEntity>>>.mergeRidingLessonDayLists()
-        : Result<Error, List<RidingLessonDayEntity>> =
+            : Result<Error, List<RidingLessonDayEntity>> =
         reduce { acc, result ->
             acc.flatMap { outerList ->
                 result.map { innerList ->
@@ -61,12 +61,10 @@ class GetRidingLessonDaysTask(
             }
         }
 
-
     private fun repeatForNumberOfWeeks(
         forWeekEntities: List<WeekEntity>,
         f: (weekEntity: WeekEntity) -> Result<Error, List<RidingLessonDayEntity>>,
     ): List<Result<Error, List<RidingLessonDayEntity>>> = forWeekEntities.map(f::invoke)
-
 
     private fun getRidingLessonsBody(
         forWeekEntity: WeekEntity,
@@ -85,7 +83,7 @@ class GetRidingLessonDaysTask(
     }
 
     private fun Result<Error, HttpCall.Response>.convertBodyToHtmlDocument()
-        : Result<Error, Document> =
+            : Result<Error, Document> =
         flatMap { response ->
             try {
                 val htmlDocument = Jsoup.parse(
@@ -104,7 +102,7 @@ class GetRidingLessonDaysTask(
         }
 
     private fun Result<Error, Document>.parseRidingLessonTableEntries(weekEntity: WeekEntity)
-        : Result<Error, List<RidingLessonDayEntity>> = map { document ->
+            : Result<Error, List<RidingLessonDayEntity>> = map { document ->
 
         weekEntity.days.zip(Weekday.values())
             .scan(listOf<RidingLessonDayEntity>()) { list, (date, weekday) ->

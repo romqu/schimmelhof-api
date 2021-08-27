@@ -24,10 +24,11 @@ message RidingLessonDto {
 
   enum RidingLessonState {
     EXPIRED = 0;
-    BOOKED_OUT = 1;
-    WAIT_LIST = 2;
-    BOOKED = 3;
-    AVAILABLE = 4;
+    EXPIRED_BOOKED = 1;
+    BOOKED_OUT = 2;
+    WAIT_LIST = 3;
+    BOOKED = 4;
+    AVAILABLE = 5;
   }
 
   enum  RidingLessonAction {

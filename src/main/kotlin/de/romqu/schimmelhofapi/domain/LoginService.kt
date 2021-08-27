@@ -9,8 +9,6 @@ import de.romqu.schimmelhofapi.data.session.SessionRepository
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
 import de.romqu.schimmelhofapi.data.shared.constant.INITIAL_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
-import de.romqu.schimmelhofapi.data.week.WeekRepository
-import de.romqu.schimmelhofapi.domain.ridinglesson.GetRidingLessonDaysTask
 import de.romqu.schimmelhofapi.shared.*
 import okhttp3.Headers
 import okhttp3.ResponseBody
@@ -27,8 +25,6 @@ class LoginService(
     private val sessionRepository: SessionRepository,
     private val getStateValuesTask: GetStateValuesTask,
     private val webpageRepository: WebpageRepository,
-    private val getRidingLessonDaysTask: GetRidingLessonDaysTask,
-    private val weekRepository: WeekRepository,
 ) {
 
     fun execute(username: String, passwordPlain: String): Result<Error, SessionEntity> =
@@ -184,7 +180,7 @@ class LoginService(
         : Result<Error, SessionEntity> =
         flatMap { out ->
             getStateValuesTask.execute(out.indexHtmlDocument)
-                .mapError(Error.CouldNotParseSessionValuesFromIndextHtml) { stateValuesOut ->
+                .mapError(Error.CouldNotParseSessionValuesFromIndexHtml) { stateValuesOut ->
                     out.session.copy(
                         viewState = stateValuesOut.viewState,
                         viewStateGenerator = stateValuesOut.viewStateGenerator,
@@ -208,6 +204,6 @@ class LoginService(
         object CouldNotParseResponseBody : Error()
         object CouldNotParseSessionValuesFromInitialHtml : Error()
         object CookieWebDoesNotExist : Error()
-        object CouldNotParseSessionValuesFromIndextHtml : Error()
+        object CouldNotParseSessionValuesFromIndexHtml : Error()
     }
 }

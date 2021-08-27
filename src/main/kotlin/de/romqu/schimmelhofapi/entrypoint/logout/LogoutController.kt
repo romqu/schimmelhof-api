@@ -3,23 +3,22 @@ package de.romqu.schimmelhofapi.entrypoint.login
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.domain.LoginService
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletResponse
 
-const val BEARER = "BEARER"
 
 @RestController
-class LoginController(
+class LogoutController(
     private val loginService: LoginService,
 ) {
     companion object {
-        const val PATH_URL = "/api/v1/users/login"
+        const val PATH_URL = "/api/v1/sessions/"
         const val PROTOBUF_MEDIA_TYPE = "application/x-protobuf"
     }
 
-    @PostMapping(PATH_URL, consumes = [PROTOBUF_MEDIA_TYPE])
+    @DeleteMapping(PATH_URL, consumes = [PROTOBUF_MEDIA_TYPE])
     fun login(
         @RequestBody loginDtoIn: LoginDtoIn,
         httpServletResponse: HttpServletResponse,

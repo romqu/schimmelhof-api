@@ -12,6 +12,11 @@ class SessionRepository(
     private val jedis: Jedis,
 ) {
 
+    fun delete(sessionEntity: SessionEntity): SessionEntity {
+        jedis.del(sessionEntity.uuid.toString())
+        return sessionEntity
+    }
+
     fun saveOrUpdate(sessionEntity: SessionEntity): SessionEntity {
         val sessionJson = objectMapper.writeValueAsString(sessionEntity)
 
