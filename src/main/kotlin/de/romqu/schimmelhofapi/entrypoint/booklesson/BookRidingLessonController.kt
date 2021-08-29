@@ -2,7 +2,6 @@ package de.romqu.schimmelhofapi.entrypoint.booklesson
 
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.domain.ridinglesson.BookRidingLessonService
-import de.romqu.schimmelhofapi.entrypoint.login.BookRidingLessonOutDto
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping

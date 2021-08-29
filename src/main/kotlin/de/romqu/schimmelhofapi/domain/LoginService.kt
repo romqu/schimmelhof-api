@@ -39,7 +39,7 @@ class LoginService(
             .saveSession()
 
     private fun Result<HttpCall.Error, HttpCall.Response>.getInitialSanitizedCookie()
-        : Result<Error, GetInitialSanitizedCookieOut> =
+            : Result<Error, GetInitialSanitizedCookieOut> =
         doOn({ response ->
             val setCookieHeaderValue = response.headers.getSetCookieValue()?.sanitizeCookie()
 
@@ -60,9 +60,13 @@ class LoginService(
             }
         })
 
-    class GetInitialSanitizedCookieOut(val initialSanitizedCookie: String, val responseBody: ResponseBody)
+    class GetInitialSanitizedCookieOut(
+        val initialSanitizedCookie: String,
+        val responseBody: ResponseBody
+    )
 
-    private fun Result<Error, GetInitialSanitizedCookieOut>.getHtmlDocumentFromBody(): Result<Error, GetHtmlDocumentFromBodyOut> =
+    private fun Result<Error, GetInitialSanitizedCookieOut>.getHtmlDocumentFromBody()
+            : Result<Error, GetHtmlDocumentFromBodyOut> =
         flatMap { out ->
             try {
                 val htmlDocument = out.responseBody.convertToDocument(INITIAL_URL)
@@ -79,7 +83,7 @@ class LoginService(
     class GetHtmlDocumentFromBodyOut(val sanitizedCookie: String, val htmlDocument: Document)
 
     private fun Result<Error, GetHtmlDocumentFromBodyOut>.getStateValuesFromInitialHtml()
-        : Result<Error, GetSessionValuesFromHtmlOut> =
+            : Result<Error, GetSessionValuesFromHtmlOut> =
         flatMap { out ->
             getStateValuesTask.execute(out.htmlDocument)
                 .mapError(Error.CouldNotParseSessionValuesFromInitialHtml) { taskOut ->
@@ -137,7 +141,7 @@ class LoginService(
     )
 
     private fun Result<Error, DoLoginOut>.getSanitizedCookieWeb()
-        : Result<Error, SessionEntity> = flatMap { out ->
+            : Result<Error, SessionEntity> = flatMap { out ->
         val sanitizedCookieWeb = out.loginHeaders.getSetCookieValue()?.sanitizeCookie()
 
         if (sanitizedCookieWeb != null)
@@ -151,7 +155,7 @@ class LoginService(
     private fun String.sanitizeCookie(): String = substringBefore(";")
 
     private fun Result<Error, SessionEntity>.getHtmlDocumentFromIndexBody()
-        : Result<Error, GetHtmlDocumentFromIndexBodyOut> =
+            : Result<Error, GetHtmlDocumentFromIndexBodyOut> =
         flatMap { session ->
             webpageRepository.getIndexPage(session)
                 .doOnResult({ httpResponse ->
