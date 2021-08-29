@@ -35,7 +35,7 @@ class LoginService(
             .doLogin(username, passwordPlain)
             .getSanitizedCookieWeb()
             .getHtmlDocumentFromIndexBody()
-            .getSateValuesFromIndexHtml()
+            .getStateValuesFromIndexHtml()
             .saveSession()
 
     private fun Result<HttpCall.Error, HttpCall.Response>.getInitialSanitizedCookie()
@@ -176,8 +176,8 @@ class LoginService(
         val indexHtmlDocument: Document,
     )
 
-    private fun Result<Error, GetHtmlDocumentFromIndexBodyOut>.getSateValuesFromIndexHtml()
-        : Result<Error, SessionEntity> =
+    private fun Result<Error, GetHtmlDocumentFromIndexBodyOut>.getStateValuesFromIndexHtml()
+            : Result<Error, SessionEntity> =
         flatMap { out ->
             getStateValuesTask.execute(out.indexHtmlDocument)
                 .mapError(Error.CouldNotParseSessionValuesFromIndexHtml) { stateValuesOut ->

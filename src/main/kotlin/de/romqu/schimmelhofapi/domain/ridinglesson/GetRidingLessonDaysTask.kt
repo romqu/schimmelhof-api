@@ -3,9 +3,11 @@ package de.romqu.schimmelhofapi.domain.ridinglesson
 import de.romqu.schimmelhofapi.data.ridinglesson.*
 import de.romqu.schimmelhofapi.data.ridinglesson.RidingLessonRepository.CmdWeek
 import de.romqu.schimmelhofapi.data.session.SessionEntity
+import de.romqu.schimmelhofapi.data.session.SessionRepository
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
 import de.romqu.schimmelhofapi.data.week.WeekEntity
+import de.romqu.schimmelhofapi.domain.GetStateValuesTask
 import de.romqu.schimmelhofapi.shared.Result
 import de.romqu.schimmelhofapi.shared.flatMap
 import de.romqu.schimmelhofapi.shared.map
@@ -23,6 +25,8 @@ import java.util.*
 @Service
 class GetRidingLessonDaysTask(
     private val ridingLessonRepository: RidingLessonRepository,
+    private val getStateValuesTask: GetStateValuesTask,
+    private val sessionRepository: SessionRepository,
 ) {
 
     enum class Weekday(val rawName: String) {
@@ -48,6 +52,8 @@ class GetRidingLessonDaysTask(
         repeatForNumberOfWeeks(forWeekEntities) { week ->
             getRidingLessonsBody(week, session)
                 .convertBodyToHtmlDocument()
+                .getStateValuesFromIndexHtml(session)
+                .updateSession()
                 .parseRidingLessonTableEntries(week)
         }.mergeRidingLessonDayLists()
 
@@ -100,6 +106,33 @@ class GetRidingLessonDaysTask(
                 Result.Failure(Error.ConvertBodyToHtmlDocument)
             }
         }
+
+    private fun Result<Error, Document>.getStateValuesFromIndexHtml(session: SessionEntity)
+            : Result<Error, GetStateValuesFromIndexHtmlOut> =
+        flatMap { document ->
+            getStateValuesTask.execute(document)
+                .mapError(Error.CouldNotParseSessionValuesFromIndexHtml) { stateValuesOut ->
+                    GetStateValuesFromIndexHtmlOut(
+                        session.copy(
+                            viewState = stateValuesOut.viewState,
+                            viewStateGenerator = stateValuesOut.viewStateGenerator,
+                            eventValidation = stateValuesOut.eventValidation,
+                        ),
+                        document
+                    )
+                }
+        }
+
+    class GetStateValuesFromIndexHtmlOut(
+        val session: SessionEntity,
+        val document: Document,
+    )
+
+    private fun Result<Error, GetStateValuesFromIndexHtmlOut>.updateSession()
+            : Result<Error, Document> = map { out ->
+        sessionRepository.saveOrUpdate(out.session)
+        out.document
+    }
 
     private fun Result<Error, Document>.parseRidingLessonTableEntries(weekEntity: WeekEntity)
             : Result<Error, List<RidingLessonDayEntity>> = map { document ->
@@ -248,5 +281,6 @@ class GetRidingLessonDaysTask(
     sealed class Error {
         object Network : Error()
         object ConvertBodyToHtmlDocument : Error()
+        object CouldNotParseSessionValuesFromIndexHtml : Error()
     }
 }

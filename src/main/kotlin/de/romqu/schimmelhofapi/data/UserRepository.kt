@@ -3,7 +3,7 @@ package de.romqu.schimmelhofapi.data
 
 import de.romqu.schimmelhofapi.data.ridinglesson.RidingLessonRepository
 import de.romqu.schimmelhofapi.data.session.SessionEntity
-import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
+import de.romqu.schimmelhofapi.data.shared.constant.BASE_URL
 import de.romqu.schimmelhofapi.data.shared.constant.LOGIN_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCallRequest
@@ -83,7 +83,7 @@ class UserRepository(
         )
 
         val request = createPostRequest(
-            INDEX_URL,
+            BASE_URL,
             addToRequestBody = requestString,
             requestData
         )
@@ -116,7 +116,6 @@ class UserRepository(
                 "&__EVENTTARGET=cmdSearch" +
                 "&txtVon=$fromDateFormatted" +
                 "&txtBis=$toDateFormatted" +
-                "&${cmdWeek.command}=${cmdWeek.symbol}" +
                 "&typ=Reitstd" +
                 "&wunschpf=nein"
     }

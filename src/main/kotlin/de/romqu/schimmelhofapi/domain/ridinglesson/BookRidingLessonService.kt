@@ -13,17 +13,18 @@ class BookRidingLessonService(
     fun execute(
         currentSession: SessionEntity,
         ridingLessonId: String,
-    ): Result<CouldNotBookSessionError, Unit> =
+    ): Result<CouldNotBookSessionError, String> =
         bookRidingLesson(ridingLessonId, currentSession)
 
     private fun bookRidingLesson(
         ridingLessonId: String,
         currentSession: SessionEntity,
-    ): Result<CouldNotBookSessionError, Unit> = ridingLessonRepository.bookRidingLesson(
+    ): Result<CouldNotBookSessionError, String> = ridingLessonRepository.bookRidingLesson(
         ridingLessonId = ridingLessonId,
         session = currentSession
     ).mapError(CouldNotBookSessionError) { httpResponse ->
         ridingLessonRepository.closeConnection(httpResponse.responseBody)
+        ridingLessonId
     }
 
     object CouldNotBookSessionError

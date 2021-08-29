@@ -5,8 +5,7 @@ import de.romqu.schimmelhofapi.entrypoint.booklesson.BookRidingLessonController
 import de.romqu.schimmelhofapi.entrypoint.getridinglessondays.GetRidingLessonsDaysController
 import de.romqu.schimmelhofapi.entrypoint.login.*
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -20,10 +19,10 @@ import redis.clients.jedis.Jedis
 
 
 @ExtendWith(SpringExtension::class)
-//@WebMvcTest(controllers = [LoginController::class])
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class LoginControllerTest {
 
     @Autowired
@@ -35,10 +34,13 @@ class LoginControllerTest {
     @Autowired
     lateinit var jedis: Jedis
 
+    lateinit var token: String
+
     @Test
+    @Order(1)
     fun login() {
 
-        jedis.flushAll()
+        // jedis.flushAll()
 
         val loginDtoIn = LoginDtoIn.newBuilder().apply {
             username = "14394"
@@ -55,7 +57,7 @@ class LoginControllerTest {
 
         val dto = LoginDtoOut.parseFrom(response.contentAsByteArray)
 
-        val token = getSessionByAuthHeaderTask.execute(
+        token = getSessionByAuthHeaderTask.execute(
             response.getHeaderValue(HttpHeaders.AUTHORIZATION)?.toString()
         ).unwrapOrNull()?.uuid?.toString() ?: ""
 
@@ -64,9 +66,8 @@ class LoginControllerTest {
     }
 
     @Test
+    @Order(2)
     fun getLessons() {
-
-        val token = getToken()
 
         val response = mockMvc.perform(
             MockMvcRequestBuilders.get(GetRidingLessonsDaysController.PATH_URL)
@@ -82,10 +83,20 @@ class LoginControllerTest {
         assertThat(dto).isNotNull
     }
 
+    @Test
+    @Order(3)
+    fun logout() {
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.delete(LogoutController.PATH_URL)
+                .header("Authorization", "$BEARER $token")
+        ).andExpect(status().isOk)
+            .andReturn()
+            .response
+    }
+
     //@Test
     fun bookLesson() {
-
-        val token = getToken()
 
         val response = mockMvc.perform(
             MockMvcRequestBuilders.post(BookRidingLessonController.PATH_URL, 9640)
@@ -98,17 +109,11 @@ class LoginControllerTest {
     //@Test
     fun cancelLesson() {
 
-        val token = getToken()
-
         val response = mockMvc.perform(
             MockMvcRequestBuilders.delete(BookRidingLessonController.PATH_URL, 9640)
                 .header("Authorization", "$BEARER $token")
         ).andExpect(status().isOk)
             .andReturn()
             .response
-    }
-
-    private fun getToken(): String {
-        return jedis.keys("*").first() ?: ""
     }
 }
