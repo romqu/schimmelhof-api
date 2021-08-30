@@ -40,8 +40,6 @@ class LoginControllerTest {
     @Order(1)
     fun login() {
 
-        // jedis.flushAll()
-
         val loginDtoIn = LoginDtoIn.newBuilder().apply {
             username = "14394"
             passwordPlain = "J6WVh6ZHv7msMfMZLLWCSHzJMC6wkZeuqRWNis2WZBnhmvx5eskTN92"
@@ -85,32 +83,34 @@ class LoginControllerTest {
 
     @Test
     @Order(3)
+    fun bookLesson() {
+
+        val response = mockMvc.perform(
+            MockMvcRequestBuilders.post(BookRidingLessonController.PATH_URL, 10389)
+                .header("Authorization", "$BEARER $token")
+        ).andExpect(status().isOk)
+            .andReturn()
+            .response
+    }
+
+    @Test
+    @Order(4)
+    fun cancelLesson() {
+
+        val response = mockMvc.perform(
+            MockMvcRequestBuilders.delete(BookRidingLessonController.PATH_URL, 10389)
+                .header("Authorization", "$BEARER $token")
+        ).andExpect(status().isOk)
+            .andReturn()
+            .response
+    }
+
+    @Test
+    @Order(5)
     fun logout() {
 
         mockMvc.perform(
             MockMvcRequestBuilders.delete(LogoutController.PATH_URL)
-                .header("Authorization", "$BEARER $token")
-        ).andExpect(status().isOk)
-            .andReturn()
-            .response
-    }
-
-    //@Test
-    fun bookLesson() {
-
-        val response = mockMvc.perform(
-            MockMvcRequestBuilders.post(BookRidingLessonController.PATH_URL, 9640)
-                .header("Authorization", "$BEARER $token")
-        ).andExpect(status().isOk)
-            .andReturn()
-            .response
-    }
-
-    //@Test
-    fun cancelLesson() {
-
-        val response = mockMvc.perform(
-            MockMvcRequestBuilders.delete(BookRidingLessonController.PATH_URL, 9640)
                 .header("Authorization", "$BEARER $token")
         ).andExpect(status().isOk)
             .andReturn()

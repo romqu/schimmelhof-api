@@ -1,4 +1,4 @@
-package de.romqu.schimmelhofapi.entrypoint.booklesson
+package de.romqu.schimmelhofapi.entrypoint.cancellesson
 
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.domain.ridinglesson.CancelRidingLessonService
@@ -19,23 +19,26 @@ class CancelRidingLessonController(
     }
 
     @DeleteMapping(PATH_URL, produces = [PROTOBUF_MEDIA_TYPE])
-    fun bookRidingLesson(
+    fun cancelRidingLesson(
         httpServletResponse: HttpServletResponse,
         @PathVariable id: String,
         session: SessionEntity,
-    ) = service.execute(session, id)
-        .doOn({ onSuccess(httpServletResponse) }, { onFailure(httpServletResponse) })
+    ): CancelRidingLessonOutDto = service.execute(session, id)
+        .doOn({ onSuccess(httpServletResponse, it) }, { onFailure(httpServletResponse) })
 
     fun onSuccess(
         httpServletResponse: HttpServletResponse,
-    ) {
+        ridingLessonId: String,
+    ): CancelRidingLessonOutDto {
         httpServletResponse.status = HttpStatus.OK.value()
+        return CancelRidingLessonOutDto.newBuilder().setRidingLessonId(ridingLessonId).build()
     }
 
 
     fun onFailure(
         httpServletResponse: HttpServletResponse,
-    ) {
+    ): CancelRidingLessonOutDto {
         httpServletResponse.status = HttpStatus.BAD_REQUEST.value()
+        return CancelRidingLessonOutDto.newBuilder().setErrorMessage("").build()
     }
 }

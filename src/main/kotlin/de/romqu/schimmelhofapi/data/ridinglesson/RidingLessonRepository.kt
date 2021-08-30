@@ -1,6 +1,7 @@
 package de.romqu.schimmelhofapi.data.ridinglesson
 
 import de.romqu.schimmelhofapi.data.session.SessionEntity
+import de.romqu.schimmelhofapi.data.shared.constant.BASE_URL
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCallRequest
@@ -93,7 +94,7 @@ class RidingLessonRepository(
             )
         }
 
-        val request = createPostRequest(INDEX_URL, "", requestData)
+        val request = createPostRequest(BASE_URL, "", requestData)
 
         return makeCall(request)
     }
@@ -116,7 +117,7 @@ class RidingLessonRepository(
 
         val requestString = buildCancelRidingLessonString(ridingLessonId)
 
-        val request = createPostRequest(INDEX_URL, requestString, requestData)
+        val request = createPostRequest(BASE_URL, requestString, requestData)
 
         return makeCall(request)
     }

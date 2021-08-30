@@ -4,7 +4,7 @@ import de.romqu.schimmelhofapi.data.ridinglesson.RidingLessonRepository
 import de.romqu.schimmelhofapi.data.session.SessionEntity
 import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
 import de.romqu.schimmelhofapi.domain.UpdateStateValuesTask
-import de.romqu.schimmelhofapi.domain.ridinglesson.CancelRidingLessonService.Error.CouldNotCancelSessionError
+import de.romqu.schimmelhofapi.domain.ridinglesson.CancelRidingLessonService.Error.CouldNotCancelSession
 import de.romqu.schimmelhofapi.domain.ridinglesson.CancelRidingLessonService.Error.CouldNotUpdateSession
 import de.romqu.schimmelhofapi.shared.Result
 import de.romqu.schimmelhofapi.shared.flatMap
@@ -22,7 +22,7 @@ class CancelRidingLessonService(
     fun execute(
         session: SessionEntity,
         ridingLessonId: String,
-    ): Result<CouldNotCancelSessionError, Unit> =
+    ): Result<Error, String> =
         cancelRidingLesson(ridingLessonId, session)
             .updateSession(session)
 
@@ -30,11 +30,11 @@ class CancelRidingLessonService(
     private fun cancelRidingLesson(
         ridingLessonId: String,
         currentSession: SessionEntity
-    ): Result<CouldNotCancelSessionError, CancelRidingLessonOut> =
+    ): Result<CouldNotCancelSession, CancelRidingLessonOut> =
         ridingLessonRepository.cancelRidingLesson(
             ridingLessonId = ridingLessonId,
             session = currentSession
-        ).mapError(CouldNotCancelSessionError) { httpResponse ->
+        ).mapError(CouldNotCancelSession) { httpResponse ->
             val document = Jsoup.parse(
                 httpResponse.responseBody.byteStream(),
                 Charsets.UTF_8.name(),
@@ -49,16 +49,16 @@ class CancelRidingLessonService(
         val lessonId: String,
     )
 
-    private fun Result<CouldNotCancelSessionError, CancelRidingLessonOut>.updateSession(
+    private fun Result<CouldNotCancelSession, CancelRidingLessonOut>.updateSession(
         session: SessionEntity,
-    ): Result<CouldNotUpdateSession, String> =
+    ): Result<Error, String> =
         flatMap { out ->
             updateStateValuesTask.execute(out.document, session)
                 .map { out.lessonId }
         }.mapError(CouldNotUpdateSession)
 
     sealed class Error {
-        object CouldNotCancelSessionError : Error()
+        object CouldNotCancelSession : Error()
         object CouldNotUpdateSession : Error()
     }
 }
