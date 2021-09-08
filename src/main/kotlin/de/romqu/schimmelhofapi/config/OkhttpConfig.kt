@@ -3,8 +3,6 @@ package de.romqu.schimmelhofapi.config
 import okhttp3.OkHttpClient
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.net.InetSocketAddress
-import java.net.Proxy
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -32,7 +30,7 @@ class OkhttpConfig {
         val sslSocketFactory = sslContext.socketFactory
 
         return OkHttpClient.Builder()
-            .proxy(Proxy(Proxy.Type.HTTP, InetSocketAddress(8081)))
+            //.proxy(Proxy(Proxy.Type.HTTP, InetSocketAddress(8081)))
             .followRedirects(false)
             .followSslRedirects(false)
             .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)

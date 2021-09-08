@@ -42,7 +42,7 @@ class GetRidingLessonDaysTask(
     enum class BookedInputValue(val rawValue: String) {
         WARTELISTE("Warteliste"),
         STORNIEREN("stornieren"),
-        WARTELISTE_STORNIEREN("Warteliste stornieren")
+        WARTELISTE_STORNIEREN("Warteliste stornieren"),
     }
 
     fun execute(
@@ -143,8 +143,52 @@ class GetRidingLessonDaysTask(
                 val todayRidingLessonsTableEntries = document.body()
                     .getElementById("tbl${weekday.rawName}") ?: return@scan list
 
+
+                val element1 = todayRidingLessonsTableEntries.select("tr td")
+
+
+                /**
+                 * ausgebucht
+                 *      -> input
+                 *          -> warteliste
+                 *          -> stornieren (selbst gebucht)
+                 *      -> kein input
+                 *          -> abgelaufen
+                 * nicht ausgebucht
+                 *      -> input
+                 *          -> buchen
+                 *      -> kein input
+                 *          -> abgelaufen
+                 *
+                 *
+                 * input
+                 *      -> warteliste
+                 *      -> warteliste stornieren
+                 *      -> stornieren
+                 *      -> buchen
+                 * kein input
+                 *      -> abgelaufen
+                 */
+
+                element1.map {
+                    if (it.hasClass("ausgebucht")) {
+                        val isBookedUp = true
+                        val first = it.selectFirst("td div")
+                        //val classValue = first.attributes().get("class")
+                        // first.select("span").textNodes()
+                        first
+                    } else {
+                        val first = it.selectFirst("td div")
+                        val classValue = first?.attributes()?.get("class")
+                        first?.select("span")?.textNodes()
+                    }
+                }
+
+
                 val bookableRidingLessons = todayRidingLessonsTableEntries
                     .getBookableRidingLessons(weekday, date)
+
+                todayRidingLessonsTableEntries
 
                 val bookedRidingLessons = todayRidingLessonsTableEntries
                     .getBookedRidingLessons(weekday, date)
