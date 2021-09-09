@@ -14,13 +14,11 @@ import de.romqu.schimmelhofapi.shared.map
 import de.romqu.schimmelhofapi.shared.mapError
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 import org.springframework.stereotype.Service
 import java.io.IOException
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.*
 
 @Service
 class GetRidingLessonDaysTask(
@@ -39,10 +37,11 @@ class GetRidingLessonDaysTask(
         SUNDAY("Sunday"),
     }
 
-    enum class BookedInputValue(val rawValue: String) {
-        WARTELISTE("Warteliste"),
+    enum class InputValue(val rawValue: String) {
+        WARTELISTE("warteliste"),
         STORNIEREN("stornieren"),
-        WARTELISTE_STORNIEREN("Warteliste stornieren"),
+        WARTELISTE_STORNIEREN("warteliste stornieren"),
+        BUCHEN("buchen"),
     }
 
     fun execute(
@@ -56,16 +55,6 @@ class GetRidingLessonDaysTask(
                 .updateSession()
                 .parseRidingLessonTableEntries(week)
         }.mergeRidingLessonDayLists()
-
-    private fun List<Result<Error, List<RidingLessonDayEntity>>>.mergeRidingLessonDayLists()
-            : Result<Error, List<RidingLessonDayEntity>> =
-        reduce { acc, result ->
-            acc.flatMap { outerList ->
-                result.map { innerList ->
-                    outerList.union(innerList).toList()
-                }
-            }
-        }
 
     private fun repeatForNumberOfWeeks(
         forWeekEntities: List<WeekEntity>,
@@ -134,67 +123,82 @@ class GetRidingLessonDaysTask(
         out.document
     }
 
+    /**
+     * ausgebucht
+     *      -> input
+     *          -> warteliste
+     *          -> stornieren (selbst gebucht)
+     *      -> kein input
+     *          -> abgelaufen
+     * nicht ausgebucht
+     *      -> input
+     *          -> buchen
+     *      -> kein input
+     *          -> abgelaufen
+     *
+     *
+     * input
+     *      -> warteliste
+     *      -> warteliste stornieren
+     *      -> stornieren
+     *      -> buchen
+     * kein input
+     *      -> abgelaufen
+     */
     private fun Result<Error, Document>.parseRidingLessonTableEntries(weekEntity: WeekEntity)
             : Result<Error, List<RidingLessonDayEntity>> = map { document ->
 
+        val today = LocalDate.now()
+
         weekEntity.days.zip(Weekday.values())
+            .filter { (date, _) -> date.isEqual(today) || date.isAfter(today) }
             .scan(listOf<RidingLessonDayEntity>()) { list, (date, weekday) ->
 
                 val todayRidingLessonsTableEntries = document.body()
                     .getElementById("tbl${weekday.rawName}") ?: return@scan list
 
-
-                val element1 = todayRidingLessonsTableEntries.select("tr td")
-
-
-                /**
-                 * ausgebucht
-                 *      -> input
-                 *          -> warteliste
-                 *          -> stornieren (selbst gebucht)
-                 *      -> kein input
-                 *          -> abgelaufen
-                 * nicht ausgebucht
-                 *      -> input
-                 *          -> buchen
-                 *      -> kein input
-                 *          -> abgelaufen
-                 *
-                 *
-                 * input
-                 *      -> warteliste
-                 *      -> warteliste stornieren
-                 *      -> stornieren
-                 *      -> buchen
-                 * kein input
-                 *      -> abgelaufen
-                 */
-
-                element1.map {
-                    if (it.hasClass("ausgebucht")) {
-                        val isBookedUp = true
-                        val first = it.selectFirst("td div")
-                        //val classValue = first.attributes().get("class")
-                        // first.select("span").textNodes()
-                        first
-                    } else {
-                        val first = it.selectFirst("td div")
-                        val classValue = first?.attributes()?.get("class")
-                        first?.select("span")?.textNodes()
+                val ridingLessonsForDay = todayRidingLessonsTableEntries.select("tr td").mapNotNull {
+                    it.getElementsByTag("input").first()
+                }.map {
+                    val parent = it.parent()
+                    val inputElement = parent.select("div input").first() ?: return@scan emptyList()
+                    val inputElementIdValue = inputElement.attr("id")
+                    val inputValueString = inputElement.attr("value").lowercase()
+                    val inputValue = InputValue.values().first { value -> value.rawValue == inputValueString }
+                    val (action, state) = when (inputValue) {
+                        InputValue.WARTELISTE -> Pair(RidingLessonAction.ON_WAIT_LIST, RidingLessonState.BOOKED_OUT)
+                        InputValue.STORNIEREN -> Pair(RidingLessonAction.CANCEL_BOOKING, RidingLessonState.BOOKED)
+                        InputValue.WARTELISTE_STORNIEREN -> Pair(
+                            RidingLessonAction.CANCEL_WAIT_LIST,
+                            RidingLessonState.WAIT_LIST
+                        )
+                        InputValue.BUCHEN -> Pair(RidingLessonAction.BOOK, RidingLessonState.AVAILABLE)
                     }
+
+                    val div = parent.selectFirst("div") ?: return@scan emptyList()
+                    val classValue = div.attributes().get("class")
+                    val textNodes = div.select("span").textNodes()
+
+                    val timeText = textNodes[1] ?: return@scan emptyList()
+                    val (from, to) = parseTimesFromText(timeText)
+
+                    val lessonCmd = inputElementIdValue.substringBefore("_")
+                    val lessonId = inputElementIdValue.substringAfter("_")
+
+                    RidingLessonEntity(
+                        lessonId = lessonId,
+                        weekday = weekday,
+                        date = date,
+                        title = classValue,
+                        from = from,
+                        to = to,
+                        teacher = textNodes[2]?.wholeText ?: "Unbekannt",
+                        place = textNodes[3]?.wholeText ?: "Unbekannt",
+                        state = state,
+                        action = action,
+                        lessonCmd = lessonCmd,
+                    )
                 }
-
-
-                val bookableRidingLessons = todayRidingLessonsTableEntries
-                    .getBookableRidingLessons(weekday, date)
-
-                todayRidingLessonsTableEntries
-
-                val bookedRidingLessons = todayRidingLessonsTableEntries
-                    .getBookedRidingLessons(weekday, date)
-
-                val ridingLessonsForDay = bookableRidingLessons.union(bookedRidingLessons)
-                    .sortedBy(RidingLessonEntity::from)
 
                 val ridingLessonDay = RidingLessonDayEntity(
                     weekday,
@@ -207,113 +211,7 @@ class GetRidingLessonDaysTask(
             }.flatten().distinct()
     }
 
-    private fun Element.getBookableRidingLessons(
-        weekday: Weekday,
-        date: LocalDate,
-    ): List<RidingLessonEntity> = select("td:not(.ausgebucht) div")
-        .flatMap { element ->
-
-            val inputElements = element.select("input")
-            val inputElementIdValue = inputElements.attr("id")
-            val isInputValueNotEmpty = inputElements.attr("value").isNotEmpty()
-            val state = if (isInputValueNotEmpty)
-                RidingLessonState.AVAILABLE else RidingLessonState.EXPIRED
-            val action = if (isInputValueNotEmpty)
-                RidingLessonAction.BOOK else RidingLessonAction.NONE
-
-            element.select("span:not(.ok)")
-                .map {
-
-                    val timeText = it.textNodes()[1]
-                    val (from, to) = parseFromToTimeFromTimeText(timeText)
-
-                    val ridingLesson = RidingLessonEntity(
-                        weekday = weekday,
-                        date = date,
-                        title = it.textNodes()[0].wholeText,
-                        from = from,
-                        to = to,
-                        teacher = it.textNodes()[2].wholeText,
-                        place = it.textNodes()[3].wholeText,
-                        state = state,
-                        action = action,
-                    )
-
-                    if (inputElementIdValue.isNotEmpty()) {
-                        val lessonCmd = inputElementIdValue.substringBefore("_")
-                        val lessonId = inputElementIdValue.substringAfter("_")
-                        ridingLesson.copy(lessonCmd = lessonCmd, lessonId = lessonId)
-                    } else ridingLesson
-                }
-
-        }
-
-    private fun Element.getBookedRidingLessons(
-        weekday: Weekday,
-        date: LocalDate,
-    ): List<RidingLessonEntity> = select("td.ausgebucht div")
-        .flatMap { element ->
-
-            val inputElements = element.select("input")
-            val inputElementIdValue = inputElements.attr("id")
-            val inputValue = inputElements.attr("value")
-
-            element.select("span:not(.ok)")
-                .map {
-
-                    val timeText = it.textNodes()[1]
-                    val (from, to) = parseFromToTimeFromTimeText(timeText)
-
-                    val ridingLesson = RidingLessonEntity(
-                        weekday = weekday,
-                        date = date,
-                        title = it.textNodes()[0].wholeText,
-                        from = from,
-                        to = to,
-                        teacher = it.textNodes()[2].wholeText,
-                        place = it.textNodes()[3].wholeText,
-                    )
-
-                    val isBookedByUser = element.select("span[title=gebucht]")
-                        .isNotEmpty()
-
-                    val ridingLessonNext = when {
-                        isBookedByUser && inputValue.isEmpty() -> {
-                            ridingLesson.copy(
-                                state = RidingLessonState.EXPIRED_BOOKED
-                            )
-                        }
-                        inputValue.isNotEmpty() -> {
-                            when (BookedInputValue.valueOf(
-                                inputValue.uppercase(Locale.getDefault()).replace(" ", "_")
-                            )) {
-                                BookedInputValue.STORNIEREN -> ridingLesson.copy(
-                                    state = RidingLessonState.BOOKED,
-                                    action = RidingLessonAction.CANCEL_BOOKING
-                                )
-                                BookedInputValue.WARTELISTE ->
-                                    ridingLesson.copy(
-                                        state = RidingLessonState.BOOKED_OUT,
-                                        action = RidingLessonAction.ON_WAIT_LIST
-                                    )
-                                BookedInputValue.WARTELISTE_STORNIEREN -> ridingLesson.copy(
-                                    state = RidingLessonState.WAIT_LIST,
-                                    action = RidingLessonAction.CANCEL_WAIT_LIST
-                                )
-                            }
-                        }
-                        else -> ridingLesson
-                    }
-
-                    if (inputElementIdValue.isNotEmpty()) {
-                        val lessonCmd = inputElementIdValue.substringBefore("_")
-                        val lessonId = inputElementIdValue.substringAfter("_")
-                        ridingLessonNext.copy(lessonCmd = lessonCmd, lessonId = lessonId)
-                    } else ridingLessonNext
-                }
-        }
-
-    private fun parseFromToTimeFromTimeText(timeText: TextNode): Pair<LocalTime, LocalTime> {
+    private fun parseTimesFromText(timeText: TextNode): Pair<LocalTime, LocalTime> {
         val fromToTimeValues = timeText.wholeText.split(" - ")
 
 
@@ -321,6 +219,16 @@ class GetRidingLessonDaysTask(
         val to = LocalTime.parse(fromToTimeValues.last())
         return Pair(from, to)
     }
+
+    private fun List<Result<Error, List<RidingLessonDayEntity>>>.mergeRidingLessonDayLists()
+            : Result<Error, List<RidingLessonDayEntity>> =
+        reduce { acc, result ->
+            acc.flatMap { outerList ->
+                result.map { innerList ->
+                    outerList.union(innerList).toList()
+                }
+            }
+        }
 
     sealed class Error {
         object Network : Error()
