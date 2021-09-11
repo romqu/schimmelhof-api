@@ -1,0 +1,60 @@
+version: "3.8"
+
+networks:
+  web:
+    external: true
+
+services:
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8081:8081"
+    volumes:
+      - "./data/caddy/config/Caddyfile:/etc/caddy/Caddyfile"
+      - schimmelhof_api_caddy_data:/data
+      - schimmelhof_api_caddy_config:/config
+    networks:
+      - web
+  redis:
+    image: "bitnami/redis:latest"
+    restart: always
+    hostname: redis
+    ports:
+      - "6379:6379"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - "schimmelhof_api_redis_data:/bitnami/redis/data"
+    depends_on:
+      - caddy
+    networks:
+      - web
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:6789" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  api:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    restart: on-failure
+    links:
+      - redis
+    networks:
+      - web
+
+volumes:
+  schimmelhof_api_caddy_data:
+    external: true
+  schimmelhof_api_caddy_config:
+  schimmelhof_api_redis_data:

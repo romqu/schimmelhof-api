@@ -8,5 +8,5 @@ import redis.clients.jedis.Jedis
 class RedisConfig {
 
     @Bean
-    fun getRedisClient(): Jedis = Jedis()
+    fun getRedisClient(): Jedis = Jedis("redis", 6379)
 }
