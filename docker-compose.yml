@@ -14,6 +14,7 @@ services:
       - "8081:8081"
     volumes:
       - "./data/caddy/config/Caddyfile:/etc/caddy/Caddyfile"
+      - "/home/roman/projects/schimmelhof/apk/:/home/caddy/schimmelhof/apk/"
       - schimmelhof_api_caddy_data:/data
       - schimmelhof_api_caddy_config:/config
     networks:
