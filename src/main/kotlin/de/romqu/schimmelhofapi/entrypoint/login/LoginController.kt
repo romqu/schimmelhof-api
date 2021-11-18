@@ -23,10 +23,13 @@ class LoginController(
     fun login(
         @RequestBody loginDtoIn: LoginDtoIn,
         httpServletResponse: HttpServletResponse,
-    ): LoginDtoOut = loginService.execute(
-        username = loginDtoIn.username,
-        passwordPlain = loginDtoIn.passwordPlain
-    ).doOn({ onSuccess(it, httpServletResponse) }, { onFailure(it, httpServletResponse) })
+    ): LoginDtoOut {
+        println("Login: $loginDtoIn")
+        return loginService.execute(
+            username = loginDtoIn.username,
+            passwordPlain = loginDtoIn.passwordPlain
+        ).doOn({ onSuccess(it, httpServletResponse) }, { onFailure(it, httpServletResponse) })
+    }
 
     fun onSuccess(session: SessionEntity, httpServletResponse: HttpServletResponse): LoginDtoOut {
         httpServletResponse.status = HttpStatus.OK.value()
