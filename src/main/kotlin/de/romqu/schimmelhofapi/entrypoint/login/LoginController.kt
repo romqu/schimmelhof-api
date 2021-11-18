@@ -35,6 +35,7 @@ class LoginController(
     }
 
     fun onFailure(error: LoginService.Error, httpServletResponse: HttpServletResponse): LoginDtoOut {
+        println("Login Error: $error")
         httpServletResponse.status = HttpStatus.BAD_REQUEST.value()
         return LoginDtoOut.newBuilder().setErrorMessage(error.toString()).build()
     }
