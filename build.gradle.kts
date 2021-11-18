@@ -7,9 +7,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "2.6.0-SNAPSHOT"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
-    id("com.google.protobuf") version "0.8.13"
-    kotlin("jvm") version "1.5.30"
-    kotlin("plugin.spring") version "1.5.30"
+    id("com.google.protobuf") version "0.8.18"
+    kotlin("jvm") version "1.5.31"
+    kotlin("plugin.spring") version "1.5.31"
 }
 
 buildscript {
@@ -49,12 +49,12 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-    implementation("redis.clients:jedis:3.6.3")
+    implementation("redis.clients:jedis:3.7.0")
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
-    implementation("org.jsoup:jsoup:1.14.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+    implementation("org.jsoup:jsoup:1.14.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
-    implementation("com.google.protobuf:protobuf-java:3.17.3")
+    implementation("com.google.protobuf:protobuf-java:3.19.1")
 }
 
 tasks.withType<Test> {
@@ -72,7 +72,7 @@ tasks.withType<KotlinCompile> {
 protobuf {
 
     protoc {
-        artifact = "com.google.protobuf:protoc:3.17.3"
+        artifact = "com.google.protobuf:protoc:3.19.1"
     }
 
     generateProtoTasks {

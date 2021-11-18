@@ -28,7 +28,7 @@ class LoginService(
 ) {
 
     fun execute(username: String, passwordPlain: String): Result<Error, SessionEntity> =
-        webpageRepository.getHomePage()
+        webpageRepository.getLoginPage()
             .getInitialSanitizedCookie()
             .getHtmlDocumentFromBody()
             .getStateValuesFromInitialHtml()
@@ -126,7 +126,6 @@ class LoginService(
             )
         }, { error ->
             when (error) {
-
                 is HttpCall.Error.ResponseUnsuccessful ->
                     Error.Network(statusCode = error.statusCode)
                 is HttpCall.Error.CallUnsuccessful ->
@@ -157,7 +156,7 @@ class LoginService(
     private fun Result<Error, SessionEntity>.getHtmlDocumentFromIndexBody()
             : Result<Error, GetHtmlDocumentFromIndexBodyOut> =
         flatMap { session ->
-            webpageRepository.getIndexPage(session)
+            webpageRepository.getBasePage(session)
                 .doOnResult({ httpResponse ->
                     val indexHtmlDocument = httpResponse.responseBody.convertToDocument(INDEX_URL)
                     webpageRepository.closeConnection(httpResponse.responseBody)

@@ -1,8 +1,8 @@
 package de.romqu.schimmelhofapi.data
 
 import de.romqu.schimmelhofapi.data.session.SessionEntity
-import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
-import de.romqu.schimmelhofapi.data.shared.constant.INITIAL_URL
+import de.romqu.schimmelhofapi.data.shared.constant.BASE_URL
+import de.romqu.schimmelhofapi.data.shared.constant.LOGIN_URL
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCall
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpCallRequest
 import de.romqu.schimmelhofapi.data.shared.httpcall.HttpGetCall
@@ -16,13 +16,13 @@ class WebpageRepository(
     private val getCallDelegate: HttpGetCallDelegate,
 ) : HttpGetCall by getCallDelegate {
 
-    fun getHomePage(): Result<HttpCall.Error, HttpCall.Response> {
-        val request = Request.Builder().url(INITIAL_URL).get().build()
+    fun getLoginPage(): Result<HttpCall.Error, HttpCall.Response> {
+        val request = Request.Builder().url(LOGIN_URL).get().build()
 
         return makeCall(request)
     }
 
-    fun getIndexPage(
+    fun getBasePage(
         sessionEntity: SessionEntity,
     ): Result<HttpCall.Error, HttpCall.Response> {
 
@@ -36,7 +36,7 @@ class WebpageRepository(
             )
         }
 
-        val request = createGetRequest(INDEX_URL, requestData)
+        val request = createGetRequest(BASE_URL, requestData)
 
         return makeCall(request)
     }

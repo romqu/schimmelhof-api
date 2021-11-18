@@ -13,4 +13,9 @@ data class HttpCallRequest(
         get() = eventValidation
             .replace("/", "%2F")
             .replace("+", "%2B")
+
+    val viewStateEncoded: String
+        get() = viewState
+            .replace("/", "%2F")
+            .replace("+", "%2B")
 }

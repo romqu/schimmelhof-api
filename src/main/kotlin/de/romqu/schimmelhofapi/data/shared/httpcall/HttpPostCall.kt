@@ -13,6 +13,7 @@ interface HttpPostCall : HttpCall {
         url: URL,
         addToRequestBody: String,
         httpCallRequest: HttpCallRequest,
+        lastFocus: Boolean = false
     ): Request
 }
 
@@ -25,6 +26,7 @@ class HttpPostCallDelegate(
         url: URL,
         addToRequestBody: String,
         httpCallRequest: HttpCallRequest,
+        lastFocus: Boolean
     ): Request = with(httpCallRequest) {
 
         Request.Builder()
@@ -34,8 +36,8 @@ class HttpPostCallDelegate(
             .post(
                 (REQUEST_EVENT_TARGET_KEY +
                         "$REQUEST_EVENT_ARGUMENT_KEY$eventArgument" +
-                        // REQUEST_LAST_FOCUS_KEY +
-                        "$REQUEST_VIEW_STATE_KEY$viewState" +
+                        (if (lastFocus) REQUEST_LAST_FOCUS_KEY else "") +
+                        "$REQUEST_VIEW_STATE_KEY$viewStateEncoded" +
                         "$REQUEST_VIEW_STATE_GENERATOR_KEY$viewStateGenerator" +
                         "$REQUEST_EVENT_VALIDATION_KEY$eventValidationEncoded" +
                         addToRequestBody)

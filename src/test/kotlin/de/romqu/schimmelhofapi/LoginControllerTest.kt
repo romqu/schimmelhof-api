@@ -1,9 +1,11 @@
 package de.romqu.schimmelhofapi
 
+import de.romqu.schimmelhofapi.data.session.SessionRepository
 import de.romqu.schimmelhofapi.domain.GetSessionByAuthHeaderTask
 import de.romqu.schimmelhofapi.entrypoint.booklesson.BookRidingLessonController
 import de.romqu.schimmelhofapi.entrypoint.getridinglessondays.GetRidingLessonsDaysController
 import de.romqu.schimmelhofapi.entrypoint.login.*
+import de.romqu.schimmelhofapi.shared.map
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
@@ -16,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import redis.clients.jedis.Jedis
+import java.util.*
 
 
 @ExtendWith(SpringExtension::class)
@@ -29,12 +32,35 @@ class LoginControllerTest {
     lateinit var mockMvc: MockMvc
 
     @Autowired
+    lateinit var sessionRepository: SessionRepository
+
+    @Autowired
     lateinit var getSessionByAuthHeaderTask: GetSessionByAuthHeaderTask
 
     @Autowired
     lateinit var jedis: Jedis
 
     lateinit var token: String
+
+    @Test
+    @Order(0)
+    fun logoutAll() {
+        jedis.keys("*")
+            .mapNotNull {
+                try {
+                    UUID.fromString(it)
+                } catch (ex: Exception) {
+                    null
+                }
+            }
+            .map { token ->
+                sessionRepository.getBy(token)
+            }.map { result ->
+                result.map { session ->
+                    doLogout(session.uuid.toString())
+                }
+            }
+    }
 
     @Test
     @Order(1)
@@ -86,7 +112,7 @@ class LoginControllerTest {
     fun bookLesson() {
 
         val response = mockMvc.perform(
-            MockMvcRequestBuilders.post(BookRidingLessonController.PATH_URL, 10389)
+            MockMvcRequestBuilders.post(BookRidingLessonController.PATH_URL, 12121)
                 .header("Authorization", "$BEARER $token")
         ).andExpect(status().isOk)
             .andReturn()
@@ -98,7 +124,7 @@ class LoginControllerTest {
     fun cancelLesson() {
 
         val response = mockMvc.perform(
-            MockMvcRequestBuilders.delete(BookRidingLessonController.PATH_URL, 10389)
+            MockMvcRequestBuilders.delete(BookRidingLessonController.PATH_URL, 12121)
                 .header("Authorization", "$BEARER $token")
         ).andExpect(status().isOk)
             .andReturn()
@@ -108,10 +134,13 @@ class LoginControllerTest {
     @Test
     @Order(5)
     fun logout() {
+        doLogout()
+    }
 
+    private fun doLogout(token1: String = token) {
         mockMvc.perform(
             MockMvcRequestBuilders.delete(LogoutController.PATH_URL)
-                .header("Authorization", "$BEARER $token")
+                .header("Authorization", "$BEARER $token1")
         ).andExpect(status().isOk)
             .andReturn()
             .response

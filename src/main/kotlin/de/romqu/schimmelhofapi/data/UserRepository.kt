@@ -43,8 +43,11 @@ class UserRepository(
 
         val request = createPostRequest(
             url = LOGIN_URL,
-            addToRequestBody = "&login1%24UserName=$username&login1%24Password=$password&login1%24LoginButton=Anmelden",
-            httpCallRequest = requestData
+            addToRequestBody = "&login1%24UserName=$username" +
+                    "&login1%24Password=$password" +
+                    "&login1%24RememberMe=on" +
+                    "&login1%24LoginButton=Anmelden",
+            httpCallRequest = requestData,
         )
 
         return makeNullableBodyCall(request) { response ->
@@ -74,7 +77,7 @@ class UserRepository(
                 cookieWeb = cookieWeb,
                 viewState = viewState,
                 viewStateGenerator = viewStateGenerator,
-                eventValidation = eventValidation
+                eventValidation = eventValidation,
             )
         }
 
@@ -85,7 +88,8 @@ class UserRepository(
         val request = createPostRequest(
             BASE_URL,
             addToRequestBody = requestString,
-            requestData
+            requestData,
+            lastFocus = true
         )
 
         return makeNullableBodyCall(request) { response ->

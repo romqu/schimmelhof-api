@@ -1,7 +1,6 @@
 package de.romqu.schimmelhofapi.data.shared.httpcall
 
 import de.romqu.schimmelhofapi.COOKIE_HEADER
-import de.romqu.schimmelhofapi.data.shared.constant.INDEX_URL
 import okhttp3.Request
 import org.springframework.stereotype.Component
 import java.net.URL
@@ -28,7 +27,7 @@ class HttpGetCallDelegate(
                 } else builder
 
             builderHeaderStep
-                .url(INDEX_URL)
+                .url(url)
                 .get()
                 .build()
         }

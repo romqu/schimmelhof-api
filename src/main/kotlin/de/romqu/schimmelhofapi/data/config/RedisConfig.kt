@@ -1,4 +1,4 @@
-package de.romqu.schimmelhofapi.config
+package de.romqu.schimmelhofapi.data.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -8,5 +8,5 @@ import redis.clients.jedis.Jedis
 class RedisConfig {
 
     @Bean
-    fun getRedisClient(): Jedis = Jedis("redis", 6379)
+    fun getRedisClient(): Jedis = Jedis()
 }

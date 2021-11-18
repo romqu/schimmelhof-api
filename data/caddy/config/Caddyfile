@@ -1,13 +1,13 @@
-schimmelhof.romqu.de {
-    reverse_proxy /api/* api:8080
-    file_server browse
-    root /apk/* /home/caddy/schimmelhof/
-    
-    basicauth /apk/* {
-	Alia JDJhJDEyJER1TEpLMW5sdjM2Nnpmdm1raEdpTU9hUFNoOVZOREplUE1MSk1KY0xLWXIuaTNzRjltbUxt
-    }
-}
-
-romqu.de {
-    respond "lousar"
-}
+#schimmelhof.romqu.de {
+#    reverse_proxy /api/* api:8080
+#    file_server browse
+#    root /apk/* /home/caddy/schimmelhof/
+#
+#    basicauth /apk/* {
+#	Alia JDJhJDEyJER1TEpLMW5sdjM2Nnpmdm1raEdpTU9hUFNoOVZOREplUE1MSk1KY0xLWXIuaTNzRjltbUxt
+#    }
+#}
+#
+#romqu.de {
+#    respond "lousar"
+#}

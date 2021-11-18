@@ -161,7 +161,7 @@ class GetRidingLessonDaysTask(
                     it.getElementsByTag("input").first()
                 }.map {
                     val parent = it.parent()
-                    val inputElement = parent.select("div input").first() ?: return@scan emptyList()
+                    val inputElement = parent?.select("div input")?.first() ?: return@scan emptyList()
                     val inputElementIdValue = inputElement.attr("id")
                     val inputValueString = inputElement.attr("value").lowercase()
                     val inputValue = InputValue.values().first { value -> value.rawValue == inputValueString }
