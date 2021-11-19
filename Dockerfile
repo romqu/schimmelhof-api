@@ -15,7 +15,7 @@
 
 FROM openjdk:16
 
-ARG JAR_FILE=target/*.jar
-ARG ENVPROFILE="dev"
+ARG JAR_FILE
+ARG ENVPROFILE
 COPY ${JAR_FILE} app.jar
 ENTRYPOINT java -Dspring.profiles.active==$ENVPROFILE  -jar /app.jar
