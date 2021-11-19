@@ -69,6 +69,10 @@ tasks.withType<KotlinCompile> {
     dependsOn("generateProto")
 }
 
+tasks.getByName<Jar>("jar") {
+    enabled = false
+}
+
 protobuf {
 
     protoc {
