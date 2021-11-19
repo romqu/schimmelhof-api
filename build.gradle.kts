@@ -50,7 +50,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     implementation("redis.clients:jedis:3.7.0")
-    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    implementation("com.squareup.okhttp3:okhttp:4.9.2")
     implementation("org.jsoup:jsoup:1.14.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
 
