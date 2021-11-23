@@ -67,8 +67,8 @@ class LoginControllerTest {
     fun login() {
 
         val loginDtoIn = LoginDtoIn.newBuilder().apply {
-            username = "14394"
-            passwordPlain = "J6WVh6ZHv7msMfMZLLWCSHzJMC6wkZeuqRWNis2WZBnhmvx5eskTN92"
+            username = "15411"
+            passwordPlain = "nEVd64RoOWdV6NPmAyFjoqL0IR3itWPtVOW"
         }.build()
 
         val response = mockMvc.perform(
