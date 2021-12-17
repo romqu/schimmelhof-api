@@ -5,7 +5,7 @@ import com.google.protobuf.gradle.protoc
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.6.0-SNAPSHOT"
+    id("org.springframework.boot") version "2.6.2-SNAPSHOT"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("com.google.protobuf") version "0.8.18"
     kotlin("jvm") version "1.5.31"
@@ -59,6 +59,19 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    val springProfilesActive = "spring.profiles.active"
+    systemProperty(
+        springProfilesActive,
+        System.getProperty(springProfilesActive) ?: "dev"
+    )
+}
+
+tasks.bootRun {
+    val springProfilesActive = "spring.profiles.active"
+    systemProperty(
+        springProfilesActive,
+        System.getProperty(springProfilesActive) ?: "dev"
+    )
 }
 
 tasks.withType<KotlinCompile> {

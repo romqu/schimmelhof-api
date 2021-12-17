@@ -2,7 +2,6 @@ package de.romqu.schimmelhofapi
 
 import de.romqu.schimmelhofapi.data.session.SessionRepository
 import de.romqu.schimmelhofapi.domain.GetSessionByAuthHeaderTask
-import de.romqu.schimmelhofapi.entrypoint.booklesson.BookRidingLessonController
 import de.romqu.schimmelhofapi.entrypoint.getridinglessondays.GetRidingLessonsDaysController
 import de.romqu.schimmelhofapi.entrypoint.login.*
 import de.romqu.schimmelhofapi.shared.map
@@ -107,7 +106,7 @@ class LoginControllerTest {
         assertThat(dto).isNotNull
     }
 
-    @Test
+/*    @Test
     @Order(3)
     fun bookLesson() {
 
@@ -129,7 +128,7 @@ class LoginControllerTest {
         ).andExpect(status().isOk)
             .andReturn()
             .response
-    }
+    }*/
 
     @Test
     @Order(5)
