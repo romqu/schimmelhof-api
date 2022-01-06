@@ -5,7 +5,7 @@ import com.google.protobuf.gradle.protoc
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.6.2-SNAPSHOT"
+    id("org.springframework.boot") version "2.7.0-SNAPSHOT"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("com.google.protobuf") version "0.8.18"
     kotlin("jvm") version "1.5.31"

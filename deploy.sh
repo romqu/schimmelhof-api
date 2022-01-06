@@ -13,7 +13,6 @@ done
 
 echo "Deploying target: $target"
 
-./gradlew assemble "-Dorg.gradle.jvmargs=--illegal-access=permit -Dspring.profiles.active=$target"
-
-docker-compose build --no-cache --build-arg ENVPROFILE=$target --build-arg JAR_FILE=build/libs/\*.jar api
+#docker-compose build --no-cache --build-arg ENVPROFILE=$target
+docker-compose build --build-arg ENVPROFILE=$target
 docker-compose up --force-recreate --no-deps -d api

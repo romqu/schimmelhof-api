@@ -5,20 +5,6 @@ networks:
     external: true
 
 services:
-  caddy:
-    image: caddy:latest
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8081:8081"
-    volumes:
-      - "./data/caddy/config/Caddyfile:/etc/caddy/Caddyfile"
-      - "/home/roman/projects/schimmelhof/apk/:/home/caddy/schimmelhof/apk/"
-      - schimmelhof_api_caddy_data:/data
-      - schimmelhof_api_caddy_config:/config
-    networks:
-      - web
   redis:
     image: "bitnami/redis:latest"
     restart: always
@@ -29,8 +15,6 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
     volumes:
       - "schimmelhof_api_redis_data:/bitnami/redis/data"
-    depends_on:
-      - caddy
     networks:
       - web
     healthcheck:
@@ -56,7 +40,4 @@ services:
       - web
 
 volumes:
-  schimmelhof_api_caddy_data:
-    external: true
-  schimmelhof_api_caddy_config:
   schimmelhof_api_redis_data:
