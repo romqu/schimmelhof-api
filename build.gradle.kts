@@ -8,8 +8,8 @@ plugins {
     id("org.springframework.boot") version "2.7.0-SNAPSHOT"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("com.google.protobuf") version "0.8.18"
-    kotlin("jvm") version "1.5.31"
-    kotlin("plugin.spring") version "1.5.31"
+    kotlin("jvm") version "1.6.10"
+    kotlin("plugin.spring") version "1.6.10"
 }
 
 buildscript {
@@ -49,10 +49,10 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-    implementation("redis.clients:jedis:3.7.0")
-    implementation("com.squareup.okhttp3:okhttp:4.9.2")
+    implementation("redis.clients:jedis:4.0.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation("org.jsoup:jsoup:1.14.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
 
     implementation("com.google.protobuf:protobuf-java:3.19.1")
 }
