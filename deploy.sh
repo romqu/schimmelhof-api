@@ -13,7 +13,7 @@ done
 
 echo "Deploying target: $target"
 
-a=$(docker-compose build --build-arg ENVPROFILE=$target)
+a=$(docker-compose build --build-arg ENVPROFILE=$target || true)
 
 echo "compose: $a"
 
