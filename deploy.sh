@@ -13,7 +13,7 @@ done
 
 echo "Deploying target: $target"
 
-echo "compose: $(whereis docker-compose)"
+echo "compose: $(whereis docker ps -a)"
 
 #docker-compose build --no-cache --build-arg ENVPROFILE=$target
 docker-compose build --build-arg ENVPROFILE=$target
