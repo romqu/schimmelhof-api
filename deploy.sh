@@ -13,7 +13,7 @@ done
 
 echo "Deploying target: $target"
 
-echo "compose: $(docker ps -a)"
+echo "compose: $(docker-compose build --build-arg ENVPROFILE=$target)"
 
 #docker-compose build --no-cache --build-arg ENVPROFILE=$target
 docker-compose build --build-arg ENVPROFILE=$target
