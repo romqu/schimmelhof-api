@@ -13,10 +13,6 @@ done
 
 echo "Deploying target: $target"
 
-a=$(docker-compose --help)
-
-echo "compose: $a"
-
 #docker-compose build --no-cache --build-arg ENVPROFILE=$target
 docker-compose build --build-arg ENVPROFILE=$target
 docker-compose up --force-recreate --no-deps -d api
