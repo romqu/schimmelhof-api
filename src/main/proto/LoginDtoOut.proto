@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package entrypoint.login;
+
+option java_package = "de.romqu.schimmelhofapi.entrypoint.login";
+option java_multiple_files = true;
+
+message LoginDtoOut {
+  string errorMessage = 1;
+}

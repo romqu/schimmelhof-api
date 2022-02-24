@@ -1,0 +1,13 @@
+schimmelhof.romqu.de {
+    reverse_proxy /api/* api:8080
+    file_server browse
+    root /apk/* /home/caddy/schimmelhof/
+
+    basicauth /apk/* {
+	  Alia JDJhJDE0JGJMODljZHFLZWpVLnpqdlBrOEVwNE9CVmVaY055SlZuc0Y0amVTRjU3OVdFZkpjc3VSQUtL
+    }
+}
+
+romqu.de {
+    respond "lousar"
+}

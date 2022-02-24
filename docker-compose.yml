@@ -1,0 +1,43 @@
+version: "3.8"
+
+networks:
+  web:
+    external: true
+
+services:
+  redis:
+    image: "bitnami/redis:latest"
+    restart: always
+    hostname: redis
+    ports:
+      - "6379:6379"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - "schimmelhof_api_redis_data:/bitnami/redis/data"
+    networks:
+      - web
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:6789" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: api
+    image: api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    restart: on-failure
+    links:
+      - redis
+    networks:
+      - web
+
+volumes:
+  schimmelhof_api_redis_data:
